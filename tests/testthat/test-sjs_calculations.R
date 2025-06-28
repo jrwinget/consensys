@@ -24,7 +24,8 @@ test_that("apply_sjs_model returns valid group judgment", {
   result <- apply_sjs_model(positions)
 
   expect_type(result, "double")
-  expect_true(!is.na(result))
+  expect_equal(length(result), length(positions))
+  expect_true(all(!is.na(result)))
 })
 
 test_that("simulate_sjs_process returns valid positions matrix", {

@@ -30,10 +30,13 @@ apply_sjs_model <- function(positions, weights = NULL) {
     weights <- calculate_sjs_weights(positions)
   }
 
-  # weighted average
-  group_judgment <- sum(colSums(weights * positions)) / length(positions)
+  # weighted average for each individual
+  new_positions <- numeric(length(positions))
+  for (i in seq_along(positions)) {
+    new_positions[i] <- sum(weights[i, ] * positions)
+  }
 
-  group_judgment
+  new_positions
 }
 
 #' Simulate SJS process over multiple rounds
@@ -47,13 +50,8 @@ simulate_sjs_process <- function(initial_positions, n_rounds = 10) {
   positions_matrix[1, ] <- initial_positions
 
   for (round in 1:n_rounds) {
-    weights <- calculate_sjs_weights(positions_matrix[round, ])
-    new_positions <- numeric(n_individuals)
-
-    for (i in 1:n_individuals) {
-      new_positions[i] <- sum(weights[i, ] * positions_matrix[round, ])
-    }
-
+    current_positions <- positions_matrix[round, ]
+    new_positions <- apply_sjs_model(current_positions)
     positions_matrix[round + 1, ] <- new_positions
   }
 

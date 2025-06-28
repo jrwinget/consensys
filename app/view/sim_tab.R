@@ -227,7 +227,7 @@ server <- function(id) {
       )
     })
 
-    output$init_positions <- shiny$renderUI({
+    output$initial_positions <- shiny$renderUI({
       shiny$req(input$n_individuals)
 
       map(
@@ -244,7 +244,7 @@ server <- function(id) {
 
     # reactive values ----------------------------------------------------------
     sds_results <- shiny$reactive({
-      shiny$req(input$n_alternatives)
+      shiny$req(input$run_comparison, input$n_alternatives)
 
       weights <- map_dbl(
         seq_len(input$n_alternatives),
@@ -255,10 +255,11 @@ server <- function(id) {
 
       res <- generate_decision_matrix(input$sds_scheme, input$n_alternatives)
       apply_decision_scheme(weights, res)
-    })
+    }) |>
+      shiny$bindEvent(input$run_comparison)
 
     sjs_results <- shiny$reactive({
-      shiny$req(input$n_individuals)
+      shiny$req(input$run_comparison, input$n_individuals)
 
       init_positions <- map_dbl(
         seq_len(input$n_individuals),
@@ -266,7 +267,8 @@ server <- function(id) {
       )
 
       simulate_sjs_process(init_positions, input$n_rounds)
-    })
+    }) |>
+      shiny$bindEvent(input$run_comparison)
 
     # plots --------------------------------------------------------------------
     output$sds_plot <- renderEcharts4r({
@@ -298,33 +300,64 @@ server <- function(id) {
 
       plot_data |>
         e_charts(Round) |>
-        e_line(Position, groupBy = "Individual") |>
+        e_line(Position, serie = Individual) |>
         e_title("Position Convergence") |>
         e_tooltip(trigger = "axis")
     })
 
-    output$comparison_metrics <- renderEcharts4r({
+    output$comparison_insights <- shiny$renderUI({
       shiny$req(sds_results(), sjs_results())
 
-      sds_entropy <- -sum(sds_results() * log(sds_results()))
+      sds_entropy <- -sum(sds_results() * log(sds_results() + 1e-10))
       sjs_final_spread <- sd(sjs_results()[nrow(sjs_results()), ])
-
-      plot_data <- data.frame(
-        Metric = c("Decision Entropy", "Final Position Spread"),
-        SDS = c(sds_entropy, NA),
-        SJS = c(NA, sjs_final_spread)
-      ) |>
-        pivot_longer(
-          cols = c("SDS", "SJS"),
-          names_to = "Model",
-          values_to = "Value"
+      sjs_initial_spread <- sd(sjs_results()[1, ])
+      convergence <- sjs_initial_spread - sjs_final_spread
+      
+      most_likely_alt <- which.max(sds_results())
+      
+      shiny$tagList(
+        shiny$tags$div(
+          class = "row",
+          shiny$tags$div(
+            class = "col-md-6",
+            shiny$tags$h6("SDS Model Results:"),
+            shiny$tags$ul(
+              shiny$tags$li(
+                sprintf("Most likely outcome: Alternative %d (%.1f%%)", 
+                       most_likely_alt, max(sds_results()) * 100)
+              ),
+              shiny$tags$li(
+                sprintf("Decision entropy: %.3f", sds_entropy)
+              )
+            )
+          ),
+          shiny$tags$div(
+            class = "col-md-6",
+            shiny$tags$h6("SJS Model Results:"),
+            shiny$tags$ul(
+              shiny$tags$li(
+                sprintf("Initial spread: %.2f", sjs_initial_spread)
+              ),
+              shiny$tags$li(
+                sprintf("Final spread: %.2f", sjs_final_spread)
+              ),
+              shiny$tags$li(
+                sprintf("Convergence: %.2f %s", 
+                       abs(convergence),
+                       if (convergence > 0) "(converged)" else "(diverged)")
+              )
+            )
+          )
         )
+      )
+    })
 
-      plot_data |>
-        e_charts(Metric) |>
-        e_bar(Value, groupBy = "Model") |>
-        e_title("Model Comparison Metrics") |>
-        e_tooltip()
+    output$comparison_status <- shiny$renderText({
+      if (is.null(sds_results()) || is.null(sjs_results())) {
+        "Ready"
+      } else {
+        "Complete"
+      }
     })
   })
 }

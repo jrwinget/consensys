@@ -11,7 +11,9 @@ box::use(
   dplyr[starts_with],
   echarts4r,
   purrr[map, map_dbl],
+  reactable[JS],
   shiny,
+  stats[sd],
   tidyr[pivot_longer],
 )
 
@@ -27,6 +29,7 @@ ui <- function(id) {
   layout_column_wrap(
     width = 1,
     fill = FALSE,
+    heights_equal = "row",
     class = "mb-3",
     # description --------------------------------------------------------------
     content_card(
@@ -218,10 +221,24 @@ server <- function(id) {
 
       initial_positions <- map_dbl(
         seq_len(input$n_individuals),
-        ~ input[[paste0("pos_", .x)]]
+        ~ input[[paste0("pos_", .x)]] %||% sample(20:80, 1)
       )
 
       simulate_sjs_process(initial_positions, input$n_rounds)
+    }) |>
+      shiny$bindEvent(input$simulate)
+
+    # randomize positions
+    shiny$observeEvent(input$randomize_positions, {
+      shiny$req(input$n_individuals)
+      
+      for (i in seq_len(input$n_individuals)) {
+        shiny$updateSliderInput(
+          session,
+          paste0("pos_", i),
+          value = sample(20:80, 1)
+        )
+      }
     })
 
     # plots --------------------------------------------------------------------
@@ -241,7 +258,7 @@ server <- function(id) {
 
       plot_data |>
         echarts4r$e_charts(Round) |>
-        echarts4r$e_line(Position, group = Individual) |>
+        echarts4r$e_line(Position, serie = Individual) |>
         echarts4r$e_tooltip(trigger = "axis") |>
         echarts4r$e_legend(show = TRUE) |>
         echarts4r$e_title("Convergence of Judgments Over Time") |>
@@ -249,22 +266,72 @@ server <- function(id) {
         echarts4r$e_y_axis(name = "Position", min = 0, max = 100)
     })
 
-    output$weight_matrix <- echarts4r$renderEcharts4r({
+    output$weights_plot <- echarts4r$renderEcharts4r({
       shiny$req(sim_results(), input$show_weights)
 
       initial_positions <- sim_results()[1, ]
       weights <- calculate_sjs_weights(initial_positions)
+      n <- nrow(weights)
+      
+      # Create heatmap data
+      heatmap_data <- expand.grid(
+        From = paste("Person", 1:n),
+        To = paste("Person", 1:n)
+      )
+      heatmap_data$Value <- as.vector(weights)
 
-      weight_df <- as.data.frame(weights)
-      colnames(weight_df) <- paste("To", seq_len(weights))
-      weight_df$From <- paste("From", seq_len(weights))
-
-      weight_df |>
+      heatmap_data |>
         echarts4r$e_charts(From) |>
-        echarts4r$e_heatmap(To, value = weights) |>
+        echarts4r$e_heatmap(To, Value) |>
         echarts4r$e_visual_map(min = 0, max = 1) |>
         echarts4r$e_title("Influence Weight Matrix") |>
-        echarts4r$e_tooltip()
+        echarts4r$e_tooltip(formatter = JS(
+          "function(params) {
+            return params.data[0] + ' → ' + params.data[1] + '<br/>Weight: ' + params.data[2].toFixed(3);
+          }"
+        ))
+    })
+
+    # status and summary outputs
+    output$status_badge <- shiny$renderText({
+      if (is.null(sim_results())) {
+        "Ready"
+      } else {
+        "Complete"
+      }
+    })
+
+    output$summary_stats <- shiny$renderUI({
+      shiny$req(sim_results())
+      
+      results <- sim_results()
+      initial_spread <- sd(results[1, ])
+      final_spread <- sd(results[nrow(results), ])
+      convergence <- initial_spread - final_spread
+      
+      shiny$tagList(
+        shiny$tags$div(
+          class = "mb-2",
+          shiny$tags$small(class = "text-muted", "Initial Spread:"),
+          shiny$tags$br(),
+          shiny$tags$strong(sprintf("%.2f", initial_spread))
+        ),
+        shiny$tags$div(
+          class = "mb-2",
+          shiny$tags$small(class = "text-muted", "Final Spread:"),
+          shiny$tags$br(),
+          shiny$tags$strong(sprintf("%.2f", final_spread))
+        ),
+        shiny$tags$div(
+          class = "mb-2",
+          shiny$tags$small(class = "text-muted", "Convergence:"),
+          shiny$tags$br(),
+          shiny$tags$strong(
+            sprintf("%.2f", convergence),
+            class = if (convergence > 0) "text-success" else "text-warning"
+          )
+        )
+      )
     })
   })
 }

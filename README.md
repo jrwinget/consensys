@@ -46,19 +46,6 @@ rhino::app()
 
 ---
 
-## Building
-
-Until the app is automatically deployed via GitHub Pages and ShinyLive, you can build locally using:
-
-```r
-rhino::build_r()
-rhino::build_js()
-```
-
-Ensure all assets are committed before pushing to the `main` branch.
-
----
-
 ## References
 
 - Davis, J. H. (1973). *Group decision and social interaction: A theory of social decision schemes*. *Psychological Review*.
