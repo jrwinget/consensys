@@ -1,166 +1,164 @@
-/* Import Roboto font */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+@import "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap";
 
-/* Fix layout spacing issues */
+/* override default gaps */
 .bslib-gap-spacing {
-    gap: 1rem !important;
-    /* Override default gaps */
+  gap: 1rem !important;
 }
 
-/* Value box improvements for readability */
+/* value box improvements for readability */
 .value-box-theme {
-    color: white !important;
+  color: white !important;
 }
 
 .value-box-theme.bg-primary {
-    background-color: #4F46E5 !important;
+  background-color: #4f46e5 !important;
 }
 
 .value-box-theme.bg-success {
-    background-color: #14B8A6 !important;
+  background-color: #14b8a6 !important;
 }
 
 .value-box-theme.bg-info {
-    background-color: #0EA5E9 !important;
+  background-color: #0ea5e9 !important;
 }
 
 .value-box-theme.bg-danger {
-    background-color: #FF6B6B !important;
+  background-color: #ff6b6b !important;
 }
 
-/* Ensure text contrast in colored cards */
+/* ensure text contrast in colored cards */
 .bg-primary,
 .bg-success,
 .bg-info,
 .bg-danger,
 .bg-warning {
-    color: white !important;
+  color: white !important;
 }
 
 .bg-primary .text-muted,
 .bg-success .text-muted,
 .bg-info .text-muted {
-    color: rgba(255, 255, 255, 0.8) !important;
+  color: rgb(255 255 255 / 80%) !important;
 }
 
-/* Card improvements */
+/* card improvements */
 .card {
-    transition: all 0.3s ease;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border: 1px solid rgb(0 0 0 / 5%);
 }
 
 .card:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-    transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -1px rgb(0 0 0 / 6%) !important;
+  transform: translateY(-1px);
 }
 
-/* Consistent card styling */
+/* consistent card styling */
 .content-card {
-    border: 1px solid rgba(0, 0, 0, 0.05) !important;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid rgb(0 0 0 / 5%) !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%) !important;
 }
 
 .content-card .card-header {
-    background-color: #F8FAFC !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    font-weight: 600;
-    color: #1E293B;
+  background-color: #f8fafc !important;
+  border-bottom: 1px solid rgb(0 0 0 / 5%);
+  font-weight: 600;
+  color: #1e293b;
 }
 
 .content-card .card-body {
-    padding: 1.25rem !important;
+  padding: 1.25rem !important;
 }
 
-/* Button improvements */
+/* button improvements */
 .btn {
-    transition: all 0.2s ease;
-    font-weight: 500;
-    letter-spacing: 0.025em;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  letter-spacing: 0.025em;
 }
 
 .btn-primary {
-    background-color: #4F46E5;
-    border-color: #4F46E5;
+  background-color: #4f46e5;
+  border-color: #4f46e5;
 }
 
 .btn-primary:hover {
-    background-color: #4338CA;
-    border-color: #4338CA;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+  background-color: #4338ca;
+  border-color: #4338ca;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgb(79 70 229 / 30%);
 }
 
 .btn-success {
-    background-color: #14B8A6;
-    border-color: #14B8A6;
+  background-color: #14b8a6;
+  border-color: #14b8a6;
 }
 
 .btn-success:hover {
-    background-color: #0D9488;
-    border-color: #0D9488;
+  background-color: #0d9488;
+  border-color: #0d9488;
 }
 
-/* Fix accordion spacing */
+/* accordion spacing */
 .accordion {
-    --bs-accordion-bg: white;
-    --bs-accordion-active-bg: #F0F9FF;
+  --bs-accordion-bg: white;
+  --bs-accordion-active-bg: #f0f9ff;
 }
 
 .accordion-button:not(.collapsed) {
-    background-color: #F0F9FF;
-    color: #4F46E5;
-    font-weight: 600;
+  background-color: #f0f9ff;
+  color: #4f46e5;
+  font-weight: 600;
 }
 
-/* Alert improvements */
+/* alert improvements */
 .alert {
-    border: 0;
-    border-radius: 0.5rem;
+  border: 0;
+  border-radius: 0.5rem;
 }
 
 .alert-info {
-    background-color: #E0F2FE;
-    color: #075985;
+  background-color: #e0f2fe;
+  color: #075985;
 }
 
 .alert-success {
-    background-color: #D1FAE5;
-    color: #065F46;
+  background-color: #d1fae5;
+  color: #065f46;
 }
 
 .alert-warning {
-    background-color: #FEF3C7;
-    color: #92400E;
+  background-color: #fef3c7;
+  color: #92400e;
 }
 
-/* Badge styling */
+/* badge styling */
 .badge {
-    padding: 0.25rem 0.75rem;
-    font-weight: 500;
-    font-size: 0.75rem;
-    letter-spacing: 0.025em;
+  padding: 0.25rem 0.75rem;
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.025em;
 }
 
-/* Lead text styling */
+/* lead text styling */
 .lead {
-    font-size: 1.125rem;
-    font-weight: 400;
-    line-height: 1.75;
-    color: #64748B;
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.75;
+  color: #64748b;
 }
 
-/* Fix excessive spacing in layout_column_wrap */
+/* adjust spacing in layout_column_wrap */
 .bslib-grid {
-    gap: 1rem !important;
+  gap: 1rem !important;
 }
 
-/* Responsive spacing */
+/* responsive spacing */
 @media (max-width: 768px) {
-    .card-body {
-        padding: 1rem !important;
-    }
+  .card-body {
+    padding: 1rem !important;
+  }
 
-    .bslib-grid {
-        gap: 0.75rem !important;
-    }
+  .bslib-grid {
+    gap: 0.75rem !important;
+  }
 }

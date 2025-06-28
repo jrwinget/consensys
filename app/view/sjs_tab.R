@@ -6,7 +6,7 @@ box::use(
     layout_column_wrap,
     layout_columns,
     popover,
-    tooltip,
+    tooltip
   ],
   dplyr[starts_with],
   echarts4r,
@@ -27,7 +27,7 @@ ui <- function(id) {
   layout_column_wrap(
     width = 1,
     fill = FALSE,
-    style = "gap: 1.5rem;",
+    class = "mb-3",
     # description --------------------------------------------------------------
     content_card(
       title = shiny$tagList(
@@ -50,7 +50,7 @@ ui <- function(id) {
           class = "btn-close",
           `data-bs-dismiss` = "alert"
         ),
-        shiny$icon("lightbulb"),
+        bs_icon("lightbulb"),
         shiny$tags$strong("Tip:"),
         " Members with similar positions have more influence on each other!"
       )
@@ -129,7 +129,7 @@ ui <- function(id) {
           input_task_button(
             ns("simulate"),
             shiny$tagList(
-              shiny$icon("play-circle"),
+              bs_icon("play-circle-fill"),
               "Run Simulation"
             ),
             class = "btn-lg btn-primary"
@@ -149,19 +149,19 @@ ui <- function(id) {
           class = "d-flex justify-content-between align-items-center",
           shiny$tags$small(
             class = "text-muted",
-            shiny$icon("arrow-left-right"),
+            bs_icon("arrow-left-right"),
             "Positions range from 0 (strongly against) to 100 (strongly for)"
           ),
-          shiny$actionButton(
+          input_task_button(
             ns("randomize_positions"),
-            shiny$icon("shuffle"),
+            bs_icon("shuffle"),
             class = "btn-sm btn-outline-secondary",
             title = "Randomize positions"
           )
         )
       )
     ),
-    # Results
+    # results ------------------------------------------------------------------
     content_card(
       title = shiny$tagList(
         "Simulation Results",

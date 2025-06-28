@@ -1,10 +1,10 @@
 box::use(
   bsicons[bs_icon],
   bslib[
-    input_task_button, 
-    layout_column_wrap, 
-    layout_columns, 
-    popover, 
+    input_task_button,
+    layout_column_wrap,
+    layout_columns,
+    popover,
     tooltip
   ],
   echarts4r[
@@ -31,7 +31,8 @@ ui <- function(id) {
   layout_column_wrap(
     width = 1,
     fill = FALSE,
-    style = "gap: 1.5rem;",
+    heights_equal = "row",
+    class = "mb-3",
     # description --------------------------------------------------------------
     content_card(
       title = shiny$tagList(
@@ -54,7 +55,7 @@ ui <- function(id) {
           class = "btn-close",
           `data-bs-dismiss` = "alert"
         ),
-        shiny$icon("lightbulb"),
+        bs_icon("lightbulb"),
         shiny$tags$strong("Key Insight:"),
         " Different decision rules can lead to vastly different group outcomes!"
       )
@@ -99,7 +100,7 @@ ui <- function(id) {
             "Decision Scheme Type:",
             choices = c(
               "Majority Rule" = "majority",
-              "Proportionality Rule" = "proportional", 
+              "Proportionality Rule" = "proportional",
               "Two-Thirds Majority" = "two_thirds",
               "Unanimity" = "unanimity",
               "Truth-Wins" = "truth",
@@ -127,9 +128,9 @@ ui <- function(id) {
         shiny$div(
           class = "d-grid mt-3",
           input_task_button(
-            ns("update_sds"), 
+            ns("update_sds"),
             shiny$tagList(
-              shiny$icon("refresh"),
+              bs_icon("arrow-clockwise"),
               "Update Model"
             ),
             class = "btn-lg btn-primary"
@@ -162,15 +163,15 @@ ui <- function(id) {
         fill = FALSE,
         content_card(
           title = "Decision Matrix",
-          class = "shadow-none border",
+          class = "shadow-none border h-100",
           header_class = "bg-white",
           body_class = "p-3",
           echarts4rOutput(ns("decision_matrix_plot"), height = "350px")
         ),
         content_card(
           title = "Predicted Outcomes",
-          class = "shadow-none border",
-          header_class = "bg-white", 
+          class = "shadow-none border h-100",
+          header_class = "bg-white",
           body_class = "p-3",
           echarts4rOutput(ns("outcome_plot"), height = "350px")
         )

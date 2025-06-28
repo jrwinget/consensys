@@ -64,13 +64,6 @@ ui <- function(id) {
       ),
       nav_item(
         tags$span(
-          bs_icon("book"),
-          "Documentation"
-        ),
-        href = "https://jrwinget.github.io/schematic/"
-      ),
-      nav_item(
-        tags$span(
           bs_icon("question-circle"),
           "Help & Tutorial"
         ),

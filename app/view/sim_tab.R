@@ -1,9 +1,9 @@
 box::use(
   bsicons[bs_icon],
   bslib[
+    input_task_button,
     layout_column_wrap,
     layout_columns,
-    input_task_button,
     tooltip
   ],
   dplyr[starts_with],
@@ -35,7 +35,8 @@ ui <- function(id) {
   layout_column_wrap(
     width = 1,
     fill = FALSE,
-    style = "gap: 1.5rem;",
+    heights_equal = "row",
+    class = "mb-3",
     # description --------------------------------------------------------------
     content_card(
       title = shiny$tagList(
@@ -48,7 +49,7 @@ ui <- function(id) {
       ),
       shiny$tags$p(
         class = "lead mb-3",
-        "Compare how SDS and SJS models handle the same initial group 
+        "Compare how SDS and SJS models handle the same initial group
         configuration."
       ),
       shiny$tags$div(
@@ -58,7 +59,7 @@ ui <- function(id) {
           class = "btn-close",
           `data-bs-dismiss` = "alert"
         ),
-        shiny$icon("exclamation-triangle"),
+        bs_icon("exclamation-triangle-fill"),
         shiny$tags$strong("Note:"),
         paste(
           " Both models will start with the same group composition for fair",
@@ -159,7 +160,7 @@ ui <- function(id) {
         input_task_button(
           ns("run_comparison"),
           shiny$tagList(
-            shiny$icon("play-circle"),
+            bs_icon("play-circle-fill"),
             "Run Comparison"
           ),
           class = "btn-lg btn-primary"

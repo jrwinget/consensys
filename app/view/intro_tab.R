@@ -1,6 +1,6 @@
 box::use(
   bsicons[bs_icon],
-  bslib[layout_column_wrap, accordion, accordion_panel],
+  bslib[accordion, accordion_panel, layout_column_wrap],
   shiny[tags],
 )
 
@@ -61,14 +61,15 @@ ui <- function(id) {
         accordion(
           id = "intro_accordion",
           open = "panel1",
+          multiple = FALSE,
           class = "mt-2",
           accordion_panel(
             "What is Social Decision Scheme (SDS)?",
             value = "panel1",
             icon = bs_icon("people-fill"),
             tags$p(
-              "SDS theory explains how groups combine individual preferences into 
-              collective decisions using mathematical rules like majority vote, 
+              "SDS theory explains how groups combine individual preferences into
+              collective decisions using mathematical rules like majority vote,
               unanimity, or proportional representation."
             ),
             tags$div(
@@ -83,8 +84,8 @@ ui <- function(id) {
             value = "panel2",
             icon = bs_icon("clipboard2-pulse-fill"),
             tags$p(
-              "SJS theory models how group members influence each other's 
-              continuous judgments (like ratings or estimates) through discussion 
+              "SJS theory models how group members influence each other's
+              continuous judgments (like ratings or estimates) through discussion
               and persuasion."
             ),
             tags$div(
@@ -131,7 +132,7 @@ ui <- function(id) {
         class = "text-center",
         tags$h5(class = "mb-2", "Ready to explore?"),
         tags$p(
-          class = "text-muted mb-3", 
+          class = "text-muted mb-3",
           "Choose a model from the navigation above to begin"
         ),
         tags$div(
