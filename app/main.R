@@ -1,7 +1,7 @@
 box::use(
   bsicons[bs_icon],
   bslib[bs_theme, nav_item, nav_menu, nav_panel, nav_spacer, page_navbar],
-  shiny[moduleServer, NS],
+  shiny[NS, moduleServer],
 )
 
 box::use(

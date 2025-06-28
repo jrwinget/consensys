@@ -52,7 +52,7 @@ ui <- function(id) {
             choices = c(
               "Majority Rule" = "majority",
               "Proportionality Rule" = "proportional",
-              "Two-Thirds Majority" = "twothirds",
+              "Two-Thirds Majority" = "two_thirds",
               "Unanimity" = "unanimity",
               "Truth-Wins" = "truth",
               "Custom" = "custom"

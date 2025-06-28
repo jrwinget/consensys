@@ -1,6 +1,5 @@
 box::use(
   glue[glue],
-  purrr[map],
 )
 
 #' Generate a decision matrix based on the specified scheme
@@ -10,86 +9,84 @@ box::use(
 #' @export
 generate_decision_matrix <- function(scheme, n_alternatives) {
   if (!is.numeric(n_alternatives) || n_alternatives < 1) {
-    stop("n_alternatives must be a positive integer")
+    stop("`n_alternatives` must be a positive integer.")
   }
 
   valid_schemes <- c(
-    "majority", "proportional", "twothirds", "unanimity", "truth"
+    "majority",
+    "proportional",
+    "two_thirds",
+    "unanimity",
+    "truth"
   )
 
   if (!scheme %in% valid_schemes) {
-    stop(
-      glue("Invalid scheme. Must be one of: {valid_schemes}")
-    )
+    stop(glue(
+      "Invalid scheme. Must be one of: {paste(valid_schemes, collapse = \", \")}"
+    ))
   }
 
-  # return proportional scheme immediately
-  if (scheme == "proportional") {
-    return(diag(n_alternatives))
-  }
-
-  # generate distributions for current state
-  distributions <- matrix(
-    1 / n_alternatives,
-    nrow = n_alternatives,
-    ncol = n_alternatives
-  )
-
-  schemes <- list(
-    majority = function(probs) {
-      if (max(probs) > 0.5) {
-        v <- numeric(length(probs))
-        v[which.max(probs)] <- 1
-        v
-      } else {
-        probs
-      }
-    },
-    twothirds = function(probs) {
-      if (max(probs) >= 2 / 3) {
-        v <- numeric(length(probs))
-        v[which.max(probs)] <- 1
-        v
-      } else {
-        probs
-      }
-    },
-    unanimity = function(probs) {
-      idx <- which(probs == 1)
-      if (length(idx)) {
-        v <- numeric(length(probs))
-        v[idx[1]] <- 1
-        v
-      } else {
-        probs
-      }
-    },
-    truth = function(probs) {
-      if (probs[1] > 0) {
-        v <- numeric(length(probs))
-        v[1] <- 1
-        v
-      } else {
-        probs
-      }
-    }
-  )
-
-  row_fn <- schemes[[scheme]]
-
-  matrix_decision <- if (!is.null(row_fn)) {
-    do.call(
-      rbind,
-      map(seq_len(n_alternatives), ~ row_fn(distributions[.x, ]))
-    )
-  } else {
+  matrix_decision <- if (scheme == "proportional") {
     diag(n_alternatives)
+  } else {
+    # uniform base distributions
+    distr <- matrix(1 / n_alternatives, n_alternatives, n_alternatives)
+
+    # scheme-specific row transformers
+    schemes <- list(
+      majority = function(p) {
+        if (max(p) > 0.5) {
+          v <- numeric(length(p))
+          v[which.max(p)] <- 1
+          v
+        } else {
+          p
+        }
+      },
+      two_thirds = function(p) {
+        if (max(p) >= 2 / 3) {
+          v <- numeric(length(p))
+          v[which.max(p)] <- 1
+          v
+        } else {
+          p
+        }
+      },
+      unanimity = function(p) {
+        idx <- which(p == 1)
+        if (length(idx)) {
+          v <- numeric(length(p))
+          v[idx[1]] <- 1
+          v
+        } else {
+          p
+        }
+      },
+      truth = function(p) {
+        if (p[1] > 0) {
+          v <- numeric(length(p))
+          v[1] <- 1
+          v
+        } else {
+          p
+        }
+      }
+    )
+
+    row_fn <- schemes[[scheme]]
+
+    mat <- t(
+      vapply(
+        seq_len(n_alternatives),
+        function(i) row_fn(distr[i, ]),
+        numeric(n_alternatives)
+      )
+    )
+
+    mat / rowSums(mat)
   }
 
-  # normalize rows
-  matrix_decision <- matrix_decision / rowSums(matrix_decision)
-
-  return(matrix_decision)
+  matrix_decision
 }
 
 #' Generate all possible compositions of n numbers that sum to total
@@ -101,12 +98,15 @@ compositions <- function(total, n) {
   if (n == 1) {
     return(matrix(total, 1, 1))
   }
+
   result <- matrix(0, 0, n)
+
   for (i in 0:total) {
     sub_comps <- compositions(total - i, n - 1)
     result <- rbind(result, cbind(i, sub_comps))
   }
-  return(result)
+
+  result
 }
 
 #' Apply a decision scheme to individual preferences

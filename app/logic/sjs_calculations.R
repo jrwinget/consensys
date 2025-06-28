@@ -17,7 +17,7 @@ calculate_sjs_weights <- function(positions) {
   # normalize weights by row
   weights <- t(apply(weights, 1, function(x) x / sum(x)))
 
-  return(weights)
+  weights
 }
 
 #' Apply SJS model to individual judgments
@@ -33,7 +33,7 @@ apply_sjs_model <- function(positions, weights = NULL) {
   # weighted average
   group_judgment <- sum(colSums(weights * positions)) / length(positions)
 
-  return(group_judgment)
+  group_judgment
 }
 
 #' Simulate SJS process over multiple rounds
@@ -57,5 +57,5 @@ simulate_sjs_process <- function(initial_positions, n_rounds = 10) {
     positions_matrix[round + 1, ] <- new_positions
   }
 
-  return(positions_matrix)
+  positions_matrix
 }
