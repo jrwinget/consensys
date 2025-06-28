@@ -1,10 +1,10 @@
 box::use(
+  bsicons[bs_icon],
   bslib[
-    card,
-    card_body,
-    card_header,
     layout_column_wrap,
-    layout_columns
+    layout_columns,
+    input_task_button,
+    tooltip
   ],
   dplyr[starts_with],
   echarts4r[
@@ -25,6 +25,7 @@ box::use(
 box::use(
   app/logic/sds_calculations[apply_decision_scheme, generate_decision_matrix],
   app/logic/sjs_calculations[simulate_sjs_process],
+  app/logic/ui_helpers[content_card],
 )
 
 #' @export
@@ -33,23 +34,51 @@ ui <- function(id) {
 
   layout_column_wrap(
     width = 1,
-    heights_equal = "row",
+    fill = FALSE,
+    style = "gap: 1.5rem;",
     # description --------------------------------------------------------------
-    card(
-      card_header("Model Comparison Simulation"),
-      card_body(
-        shiny$tags$p(
-          "Compare how SDS and SJS models handle the same initial group
-          configuration."
+    content_card(
+      title = shiny$tagList(
+        "Model Comparison Simulation",
+        tooltip(
+          bs_icon("info-circle"),
+          "Run side-by-side comparisons of SDS and SJS models",
+          placement = "right"
+        )
+      ),
+      shiny$tags$p(
+        class = "lead mb-3",
+        "Compare how SDS and SJS models handle the same initial group 
+        configuration."
+      ),
+      shiny$tags$div(
+        class = "alert alert-warning alert-dismissible fade show",
+        shiny$tags$button(
+          type = "button",
+          class = "btn-close",
+          `data-bs-dismiss` = "alert"
+        ),
+        shiny$icon("exclamation-triangle"),
+        shiny$tags$strong("Note:"),
+        paste(
+          " Both models will start with the same group composition for fair",
+          "comparison."
         )
       )
     ),
-    # settings -----------------------------------------------------------------
+    # Settings
     layout_columns(
       col_widths = c(6, 6),
-      card(
-        card_header("SDS Settings"),
-        card_body(
+      fill = FALSE,
+      content_card(
+        title = "SDS Settings",
+        header_content = tooltip(
+          bs_icon("gear"),
+          "Configure discrete choice model",
+          placement = "top"
+        ),
+        shiny$div(
+          class = "mb-3",
           shiny$selectInput(
             ns("sds_scheme"),
             "Decision Scheme:",
@@ -59,57 +88,119 @@ ui <- function(id) {
               "Two-Thirds Majority" = "two_thirds",
               "Unanimity" = "unanimity",
               "Truth-Wins" = "truth"
-            )
-          ),
+            ),
+            selected = "majority",
+            width = "100%"
+          )
+        ),
+        shiny$div(
+          class = "mb-3",
           shiny$numericInput(
             ns("n_alternatives"),
-            "Number of Alternatives:",
+            shiny$tagList(
+              "Number of Alternatives",
+              shiny$tags$small(class = "text-muted", "(2-5 options)")
+            ),
             value = 3,
             min = 2,
-            max = 5
-          ),
-          shiny$uiOutput(ns("alternative_weights"))
-        )
+            max = 5,
+            width = "100%"
+          )
+        ),
+        shiny$uiOutput(ns("alt_weights"))
       ),
-      card(
-        card_header("SJS Settings"),
-        card_body(
+      content_card(
+        title = "SJS Settings",
+        header_content = tooltip(
+          bs_icon("gear"),
+          "Configure continuous judgment model",
+          placement = "top"
+        ),
+        shiny$div(
+          class = "mb-3",
           shiny$numericInput(
             ns("n_rounds"),
-            "Number of Rounds:",
+            shiny$tagList(
+              "Number of Rounds",
+              shiny$tags$small(class = "text-muted", "(1-20 iterations)")
+            ),
             value = 5,
             min = 1,
-            max = 20
-          ),
+            max = 20,
+            width = "100%"
+          )
+        ),
+        shiny$div(
+          class = "mb-3",
           shiny$numericInput(
             ns("n_individuals"),
-            "Number of Individuals:",
+            shiny$tagList(
+              "Number of Individuals",
+              shiny$tags$small(class = "text-muted", "(2-10 members)")
+            ),
             value = 5,
             min = 2,
-            max = 10
+            max = 10,
+            width = "100%"
+          )
+        ),
+        shiny$uiOutput(ns("initial_positions"))
+      )
+    ),
+    # Run button
+    content_card(
+      class = "shadow-sm border-primary",
+      shiny$div(
+        class = "text-center",
+        shiny$tags$p(
+          class = "mb-3",
+          "Configure both models above, then run the comparison simulation"
+        ),
+        input_task_button(
+          ns("run_comparison"),
+          shiny$tagList(
+            shiny$icon("play-circle"),
+            "Run Comparison"
           ),
-          shiny$uiOutput(ns("initial_positions"))
+          class = "btn-lg btn-primary"
         )
       )
     ),
-    # results ------------------------------------------------------------------
-    card(
-      card_header("Comparison Results"),
-      card_body(
-        layout_columns(
-          col_widths = c(6, 6),
-          card(
-            card_header("SDS Model Outcome"),
-            card_body(echarts4rOutput(ns("sds_plot")))
-          ),
-          card(
-            card_header("SJS Model Outcome"),
-            card_body(echarts4rOutput(ns("sjs_plot")))
-          )
+    # Results
+    content_card(
+      title = shiny$tagList(
+        "Comparison Results",
+        shiny$tags$span(
+          class = "badge bg-secondary ms-2",
+          shiny$textOutput(ns("comparison_status"), inline = TRUE)
+        )
+      ),
+      layout_columns(
+        col_widths = c(6, 6),
+        fill = FALSE,
+        content_card(
+          title = "SDS Model Outcome",
+          class = "shadow-none border",
+          header_class = "bg-white",
+          body_class = "p-3",
+          echarts4rOutput(ns("sds_plot"), height = "350px")
         ),
-        card(
-          card_header("Model Comparison Metrics"),
-          card_body(echarts4rOutput(ns("comparison_metrics")))
+        content_card(
+          title = "SJS Model Outcome",
+          class = "shadow-none border",
+          header_class = "bg-white",
+          body_class = "p-3",
+          echarts4rOutput(ns("sjs_plot"), height = "350px")
+        )
+      ),
+      shiny$tags$div(
+        class = "mt-3",
+        content_card(
+          title = "Insights & Comparison",
+          class = "shadow-none border",
+          header_class = "bg-info text-white",
+          body_class = "p-3",
+          shiny$uiOutput(ns("comparison_insights"))
         )
       )
     )
@@ -120,7 +211,7 @@ ui <- function(id) {
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
     # dynamic inputs -----------------------------------------------------------
-    output$alternative_weights <- shiny$renderUI({
+    output$alt_weights <- shiny$renderUI({
       shiny$req(input$n_alternatives)
 
       map(
@@ -135,7 +226,7 @@ server <- function(id) {
       )
     })
 
-    output$initial_positions <- shiny$renderUI({
+    output$init_positions <- shiny$renderUI({
       shiny$req(input$n_individuals)
 
       map(
@@ -168,12 +259,12 @@ server <- function(id) {
     sjs_results <- shiny$reactive({
       shiny$req(input$n_individuals)
 
-      initial_positions <- map_dbl(
+      init_positions <- map_dbl(
         seq_len(input$n_individuals),
         ~ input[[paste0("init_pos_", .x)]] %||% 50
       )
 
-      simulate_sjs_process(initial_positions, input$n_rounds)
+      simulate_sjs_process(init_positions, input$n_rounds)
     })
 
     # plots --------------------------------------------------------------------

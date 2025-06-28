@@ -1,12 +1,12 @@
 box::use(
+  bsicons[bs_icon],
   bslib[
-    card,
-    card_body,
-    card_header,
     input_switch,
     input_task_button,
     layout_column_wrap,
-    layout_columns
+    layout_columns,
+    popover,
+    tooltip,
   ],
   dplyr[starts_with],
   echarts4r,
@@ -16,10 +16,8 @@ box::use(
 )
 
 box::use(
-  app/logic/sjs_calculations[
-    calculate_sjs_weights,
-    simulate_sjs_process
-  ],
+  app/logic/sjs_calculations[calculate_sjs_weights, simulate_sjs_process],
+  app/logic/ui_helpers[content_card],
 )
 
 #' @export
@@ -28,64 +26,167 @@ ui <- function(id) {
 
   layout_column_wrap(
     width = 1,
-    heights_equal = "row",
+    fill = FALSE,
+    style = "gap: 1.5rem;",
     # description --------------------------------------------------------------
-    card(
-      card_header("Social Judgment Scheme (SJS) Model"),
-      card_body(
-        shiny$tags$p(
-          "The SJS model describes how group members influence each other's
-          judgments based on their relative positions on a continuous scale."
+    content_card(
+      title = shiny$tagList(
+        "Social Judgment Scheme (SJS) Model",
+        tooltip(
+          bs_icon("info-circle"),
+          "Model how opinions converge or polarize through group interaction",
+          placement = "right"
         )
+      ),
+      shiny$tags$p(
+        class = "lead mb-3",
+        "Watch how group members influence each other's continuous judgments
+        over time."
+      ),
+      shiny$tags$div(
+        class = "alert alert-info alert-dismissible fade show",
+        shiny$tags$button(
+          type = "button",
+          class = "btn-close",
+          `data-bs-dismiss` = "alert"
+        ),
+        shiny$icon("lightbulb"),
+        shiny$tags$strong("Tip:"),
+        " Members with similar positions have more influence on each other!"
       )
     ),
     # settings -----------------------------------------------------------------
     layout_columns(
       col_widths = c(6, 6),
-      card(
-        card_header("Model Parameters"),
-        card_body(
+      fill = FALSE,
+      content_card(
+        title = "Model Parameters",
+        header_content = popover(
+          bs_icon("question-circle"),
+          title = "Parameter Guide",
+          shiny$tags$div(
+            shiny$tags$p(
+              shiny$tags$b("Individuals:"),
+              " Group size affects convergence speed"
+            ),
+            shiny$tags$p(
+              shiny$tags$b("Rounds:"),
+              " More rounds show long-term dynamics"
+            ),
+            shiny$tags$p(
+              class = "mb-0",
+              shiny$tags$b("Weights:"),
+              " See how similarity drives influence"
+            )
+          )
+        ),
+        shiny$div(
+          class = "mb-3",
           shiny$numericInput(
             ns("n_individuals"),
-            "Number of Individuals:",
+            shiny$tagList(
+              "Number of Individuals",
+              shiny$tags$small(class = "text-muted", "(2-10 members)")
+            ),
             value = 5,
             min = 2,
-            max = 10
-          ),
+            max = 10,
+            width = "100%"
+          )
+        ),
+        shiny$div(
+          class = "mb-3",
           shiny$numericInput(
             ns("n_rounds"),
-            "Number of Rounds:",
+            shiny$tagList(
+              "Number of Rounds",
+              shiny$tags$small(class = "text-muted", "(1-20 iterations)")
+            ),
             value = 5,
             min = 1,
-            max = 20
-          ),
+            max = 20,
+            width = "100%"
+          )
+        ),
+        shiny$div(
+          class = "mb-4",
           input_switch(
             ns("show_weights"),
-            "Show Influence Weights",
-            value = FALSE
-          ),
+            label = shiny$tagList(
+              "Show Influence Weights",
+              tooltip(
+                bs_icon("info-circle"),
+                "Visualize how members influence each other",
+                placement = "top"
+              )
+            ),
+            value = FALSE,
+            width = "100%"
+          )
+        ),
+        shiny$div(
+          class = "d-grid",
           input_task_button(
             ns("simulate"),
-            "Run Simulation"
+            shiny$tagList(
+              shiny$icon("play-circle"),
+              "Run Simulation"
+            ),
+            class = "btn-lg btn-primary"
           )
         )
       ),
-      card(
-        card_header("Initial Positions"),
-        card_body(
-          shiny$uiOutput(ns("position_inputs")),
-          shiny$tags$p("Set initial positions (0-100) for each individual")
+      content_card(
+        title = "Initial Positions",
+        header_content = tooltip(
+          bs_icon("dice-5"),
+          "Set starting opinions or randomize",
+          placement = "right"
+        ),
+        shiny$uiOutput(ns("position_inputs")),
+        shiny$tags$hr(class = "my-3"),
+        shiny$tags$div(
+          class = "d-flex justify-content-between align-items-center",
+          shiny$tags$small(
+            class = "text-muted",
+            shiny$icon("arrow-left-right"),
+            "Positions range from 0 (strongly against) to 100 (strongly for)"
+          ),
+          shiny$actionButton(
+            ns("randomize_positions"),
+            shiny$icon("shuffle"),
+            class = "btn-sm btn-outline-secondary",
+            title = "Randomize positions"
+          )
         )
       )
     ),
-    # results ------------------------------------------------------------------
-    card(
-      card_header("Simulation Results"),
-      card_body(
-        layout_columns(
-          col_widths = c(8, 4),
-          echarts4r$echarts4rOutput(ns("convergence_plot")),
-          echarts4r$echarts4rOutput(ns("weight_matrix"))
+    # Results
+    content_card(
+      title = shiny$tagList(
+        "Simulation Results",
+        shiny$tags$span(
+          class = "badge bg-secondary ms-2",
+          shiny$textOutput(ns("status_badge"), inline = TRUE)
+        )
+      ),
+      layout_columns(
+        col_widths = c(8, 4),
+        fill = FALSE,
+        echarts4r$echarts4rOutput(ns("convergence_plot"), height = "400px"),
+        content_card(
+          class = "shadow-none border h-100",
+          header_class = "bg-light",
+          body_class = "p-3",
+          shiny$tags$h6("Key Metrics"),
+          shiny$uiOutput(ns("summary_stats")),
+          shiny$conditionalPanel(
+            condition = "input.show_weights",
+            ns = ns,
+            shiny$tags$hr(),
+            shiny$tags$h6("Influence Matrix"),
+            echarts4r$echarts4rOutput(ns("weights_plot"), height = "250px")
+          )
         )
       )
     )
