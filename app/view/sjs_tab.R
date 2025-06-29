@@ -9,9 +9,20 @@ box::use(
     tooltip
   ],
   dplyr[starts_with],
-  echarts4r,
+  echarts4r[
+    e_charts,
+    e_heatmap,
+    e_legend,
+    e_line,
+    e_title,
+    e_tooltip,
+    e_visual_map,
+    e_x_axis,
+    e_y_axis,
+    echarts4rOutput,
+    renderEcharts4r
+  ],
   purrr[map, map_dbl],
-  reactable[JS],
   shiny,
   stats[sd],
   tidyr[pivot_longer],
@@ -176,7 +187,7 @@ ui <- function(id) {
       layout_columns(
         col_widths = c(8, 4),
         fill = FALSE,
-        echarts4r$echarts4rOutput(ns("convergence_plot"), height = "400px"),
+        echarts4rOutput(ns("convergence_plot"), height = "400px"),
         content_card(
           class = "shadow-none border h-100",
           header_class = "bg-light",
@@ -188,7 +199,7 @@ ui <- function(id) {
             ns = ns,
             shiny$tags$hr(),
             shiny$tags$h6("Influence Matrix"),
-            echarts4r$echarts4rOutput(ns("weights_plot"), height = "250px")
+            echarts4rOutput(ns("weights_plot"), height = "250px")
           )
         )
       )
@@ -242,12 +253,15 @@ server <- function(id) {
     })
 
     # plots --------------------------------------------------------------------
-    output$convergence_plot <- echarts4r$renderEcharts4r({
+    output$convergence_plot <- renderEcharts4r({
       shiny$req(sim_results())
 
       results_df <- as.data.frame(sim_results())
-      colnames(results_df) <- paste("Individual", seq_len(input$n_individuals))
-      results_df$Round <- 0:input$n_rounds
+      n_individuals <- input$n_individuals
+      n_rounds <- input$n_rounds
+      
+      colnames(results_df) <- paste("Individual", seq_len(n_individuals))
+      results_df$Round <- 0:n_rounds
 
       plot_data <- results_df |>
         pivot_longer(
@@ -257,16 +271,16 @@ server <- function(id) {
         )
 
       plot_data |>
-        echarts4r$e_charts(Round) |>
-        echarts4r$e_line(Position, serie = Individual) |>
-        echarts4r$e_tooltip(trigger = "axis") |>
-        echarts4r$e_legend(show = TRUE) |>
-        echarts4r$e_title("Convergence of Judgments Over Time") |>
-        echarts4r$e_x_axis(name = "Round") |>
-        echarts4r$e_y_axis(name = "Position", min = 0, max = 100)
+        e_charts(Round) |>
+        e_line(Position, serie = Individual) |>
+        e_tooltip(trigger = "axis") |>
+        e_legend(show = TRUE) |>
+        e_title("Convergence of Judgments Over Time") |>
+        e_x_axis(name = "Round") |>
+        e_y_axis(name = "Position", min = 0, max = 100)
     })
 
-    output$weights_plot <- echarts4r$renderEcharts4r({
+    output$weights_plot <- renderEcharts4r({
       shiny$req(sim_results(), input$show_weights)
 
       initial_positions <- sim_results()[1, ]
@@ -281,15 +295,11 @@ server <- function(id) {
       heatmap_data$Value <- as.vector(weights)
 
       heatmap_data |>
-        echarts4r$e_charts(From) |>
-        echarts4r$e_heatmap(To, Value) |>
-        echarts4r$e_visual_map(min = 0, max = 1) |>
-        echarts4r$e_title("Influence Weight Matrix") |>
-        echarts4r$e_tooltip(formatter = JS(
-          "function(params) {
-            return params.data[0] + ' → ' + params.data[1] + '<br/>Weight: ' + params.data[2].toFixed(3);
-          }"
-        ))
+        e_charts(From) |>
+        e_heatmap(To, Value) |>
+        e_visual_map(min = 0, max = 1) |>
+        e_title("Influence Weight Matrix") |>
+        e_tooltip()
     })
 
     # status and summary outputs
