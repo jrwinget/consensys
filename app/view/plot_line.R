@@ -26,14 +26,12 @@ server <- function(id, res) {
       colnames(results_df) <- paste("Individual", seq_len(n_individuals))
       results_df$Round <- 0:n_rounds
 
-      plot_data <- results_df |>
+      results_df |>
         pivot_longer(
           cols = starts_with("Individual"),
           names_to = "Individual",
           values_to = "Position"
-        )
-
-      plot_data |>
+        ) |>
         echarts4r$e_charts(Round, timeline = FALSE) |>
         echarts4r$e_line(
           Position,

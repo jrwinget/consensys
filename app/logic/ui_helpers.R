@@ -4,6 +4,8 @@ box::use(
   shiny[tags],
 )
 
+`%||%` <- function(a, b) if (is.null(a)) b else a
+
 #' Create a consistently styled card
 #' @export
 content_card <- function(

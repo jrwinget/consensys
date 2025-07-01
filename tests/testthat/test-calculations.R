@@ -156,9 +156,11 @@ test_that("calculate_sjs_weights distance logic works correctly", {
   positions <- c(0, 50, 100)
   weights <- calculate_sjs_weights(positions, decay_parameter = 2)
 
-  # middle person should be more influenced by closer positions
-  # but with symmetric distances, check self-influence is highest
-  expect_true(weights[2, 2] >= max(weights[2, c(1, 3)]))
+  # diagonal is set to 0 (no self-influence), check that weights are symmetric
+  # person 2 should receive equal influence from persons 1 and 3 (equidistant)
+  expect_equal(weights[2, 1], weights[2, 3], tolerance = 1e-10)
+  # diagonal should be 0 (no self-influence in social component)
+  expect_equal(weights[2, 2], 0, tolerance = 1e-10)
 })
 
 test_that("apply_sjs_round returns valid positions", {
@@ -218,11 +220,16 @@ test_that("calculate_sjs_consensus returns valid metrics", {
     "final_variance",
     "variance_reduction",
     "consensus_level",
+    "mean_initial_position",
     "mean_final_position",
-    "position_range",
+    "center_shift",
+    "initial_range",
+    "final_range",
+    "range_reduction",
     "converged",
     "final_round"
   )
+
   expect_named(consensus, expected_names)
   expect_true(consensus$initial_variance >= 0)
   expect_true(consensus$final_variance >= 0)

@@ -17,6 +17,8 @@ box::use(
   app/view/plot_heatmap,
 )
 
+`%||%` <- function(a, b) if (is.null(a)) b else a
+
 #' @export
 ui <- function(id) {
   ns <- shiny$NS(id)
@@ -153,7 +155,25 @@ ui <- function(id) {
         col_widths = c(6, 6),
         fill = FALSE,
         content_card(
-          title = "Decision Matrix",
+          title = shiny$tagList(
+            "Decision Matrix",
+            tooltip(
+              bs_icon("info-circle"),
+              shiny$tags$div(
+                shiny$tags$p(
+                  "This matrix shows the decision scheme rules (D) - how
+                  different group compositions lead to final choices."
+                ),
+                shiny$tags$p(
+                  class = "mb-0",
+                  shiny$tags$b("Note:"),
+                  " This matrix represents the social process rules, not
+                  individual preferences."
+                )
+              ),
+              placement = "top"
+            )
+          ),
           class = "shadow-none border h-100",
           header_class = "bg-white",
           body_class = "p-3",
@@ -251,11 +271,11 @@ server <- function(id) {
         prefs[i] <- input[[key]] %||% pref_values[[key]] %||% (1 / n)
       }
 
-      # normalize prefs
-      prefs <- prefs / sum(prefs)
+      prefs <- prefs / sum(prefs) # normalize prefs
       individual_prefs(prefs)
 
-      scheme_name <- switch(input$sds_type,
+      scheme_name <- switch(
+        input$sds_type,
         "truth" = "truth_wins",
         input$sds_type
       )

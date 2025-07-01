@@ -20,6 +20,8 @@ box::use(
   app/view/plot_line,
 )
 
+`%||%` <- function(a, b) if (is.null(a)) b else a
+
 #' @export
 ui <- function(id) {
   ns <- shiny$NS(id)
@@ -200,7 +202,7 @@ server <- function(id) {
     position_values <- shiny$reactiveValues()
 
     # init position values when n_individuals changes
-    shiny$observeEvent(input$n_individuals, {
+    shiny$observe({
       n <- input$n_individuals
       if (!is.null(n) && n >= 2) {
         for (i in seq_len(n)) {
@@ -224,7 +226,6 @@ server <- function(id) {
     # dynamic inputs -----------------------------------------------------------
     output$position_inputs <- shiny$renderUI({
       shiny$req(input$n_individuals)
-
       map(
         seq_len(input$n_individuals),
         function(i) {
@@ -256,10 +257,9 @@ server <- function(id) {
     })
 
     # reactive values ----------------------------------------------------------
+    # positions from input values
     sim_results <- shiny$reactive({
-      shiny$req(input$simulate > 0, input$n_individuals)
-
-      # positions from input values
+      shiny$req(input$n_individuals)
       initial_positions <- map_dbl(
         seq_len(input$n_individuals),
         function(i) {
@@ -269,12 +269,12 @@ server <- function(id) {
       )
 
       simulate_sjs_process(initial_positions, input$n_rounds)
-    })
+    }) |> 
+      shiny$bindEvent(input$simulate)
 
     # randomize positions
-    shiny$observeEvent(input$randomize_positions, {
+    shiny$observe({
       shiny$req(input$n_individuals)
-
       for (i in seq_len(input$n_individuals)) {
         key <- paste0("pos_", i)
         new_value <- sample(20:80, 1)
@@ -285,7 +285,8 @@ server <- function(id) {
           value = new_value
         )
       }
-    })
+    }) |> 
+      shiny$bindEvent(input$randomize_positions)
 
     # plots --------------------------------------------------------------------
     output$plot_convergence <- plot_line$server("plot_convergence", sim_results)

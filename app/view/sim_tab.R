@@ -19,6 +19,8 @@ box::use(
   app/view/plot_line,
 )
 
+`%||%` <- function(a, b) if (is.null(a)) b else a
+
 #' @export
 ui <- function(id) {
   ns <- shiny$NS(id)
@@ -206,7 +208,7 @@ server <- function(id) {
     position_values <- shiny$reactiveValues()
 
     # init weight values when n_alternatives changes
-    shiny$observeEvent(input$n_alternatives, {
+    shiny$observe({
       n <- input$n_alternatives
       if (!is.null(n) && n >= 2) {
         default_weight <- 1 / n
@@ -229,7 +231,7 @@ server <- function(id) {
     })
 
     # init position values when n_individuals changes
-    shiny$observeEvent(input$n_individuals, {
+    shiny$observe({
       n <- input$n_individuals
       if (!is.null(n) && n >= 2) {
         for (i in seq_len(n)) {
