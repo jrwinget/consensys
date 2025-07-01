@@ -1,6 +1,6 @@
-# schematic
+# Consensys
 
-**schematic** is an interactive R Shiny application for exploring, visualizing, and simulating group decision-making and judgment processes. Based on foundational theories in group psychology (SDS and SJS), the app helps users intuitively understand how individual inputs combine into collective outcomes.
+**Consensys** is an interactive R Shiny application for exploring, visualizing, and simulating group decision-making and judgment processes. Based on foundational theories in group psychology (SDS and SJS), the app helps users intuitively understand how individual inputs combine into collective outcomes.
 
 *Coming Soon:* This app will be hosted via GitHub Pages directly from the repository.
 
@@ -27,7 +27,7 @@
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/jrwinget/schematic.git
+git clone https://github.com/jrwinget/consensys.git
 ```
 
 ### 2. Install dependencies

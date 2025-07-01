@@ -56,22 +56,20 @@ ui <- function(id) {
       title = bs_icon("three-dots"),
       align = "right",
       nav_item(
-        tags$span(
-          bs_icon("github"),
-          "GitHub"
-        ),
-        href = "https://github.com/jrwinget/schematic"
+        tags$a(
+          href = "https://github.com/jrwinget/consensys",
+          tags$span(bs_icon("github"), "About")
+        )
       ),
       nav_item(
-        tags$span(
-          bs_icon("question-circle"),
-          "Help & Tutorial"
-        ),
-        onclick = "showHelpModal();"
+        tags$a(
+          href = "https://github.com/jrwinget/consensys/issues",
+          tags$span(bs_icon("bug"), "Report Issue")
+        )
       )
     ),
     # visual Hierarchy: subtle but clear branding
-    window_title = "Group Decision Models | Schematic"
+    window_title = "Consensys | Group Decision Models"
   )
 }
 
