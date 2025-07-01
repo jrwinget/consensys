@@ -1,65 +1,86 @@
 box::use(
   bsicons[bs_icon],
-  bslib[bs_theme, nav_item, nav_menu, nav_panel, nav_spacer, page_navbar],
-  shiny[NS, moduleServer],
+  bslib[nav_item, nav_menu, nav_panel, nav_spacer, page_navbar, tooltip],
+  shiny[NS, moduleServer, tags],
 )
 
 box::use(
+  app/logic/theme[create_app_theme],
   app/view/intro_tab,
   app/view/sds_tab,
-  app/view/simulation_tab,
+  app/view/sim_tab,
   app/view/sjs_tab,
 )
-
-# TODO: add documentation tab
 
 #' @export
 ui <- function(id) {
   ns <- NS(id)
 
   page_navbar(
-    title = "Group Decision Making Models",
-    theme = bs_theme(version = 5, bootswatch = "morph"),
+    title = tags$span(
+      "Group Decision Making Models",
+      tooltip(
+        bs_icon("info-circle"),
+        "Interactive tools for understanding group decision processes",
+        placement = "bottom"
+      )
+    ),
+    theme = create_app_theme(),
+    # progressive disclosure: start with intro
     nav_panel(
-      "Introduction",
+      title = "Introduction",
+      value = "intro",
+      icon = bs_icon("house-door"),
       intro_tab$ui(ns("intro"))
     ),
     nav_panel(
-      "Social Decision Scheme",
+      title = "Social Decision Scheme",
+      value = "sds",
+      icon = bs_icon("diagram-3"),
       sds_tab$ui(ns("sds"))
     ),
     nav_panel(
-      "Social Judgment Scheme",
+      title = "Social Judgment Scheme",
+      value = "sjs",
+      icon = bs_icon("sliders"),
       sjs_tab$ui(ns("sjs"))
     ),
     nav_panel(
-      "Simulation",
-      simulation_tab$ui(ns("simulation"))
+      title = "Simulation",
+      value = "simulation",
+      icon = bs_icon("play-circle"),
+      sim_tab$ui(ns("sim"))
     ),
     nav_spacer(),
     nav_menu(
-      "More",
-      title = "Additional Resources",
+      title = bs_icon("three-dots"),
       align = "right",
       nav_item(
-        "GitHub",
-        icon = bs_icon("github"),
+        tags$span(
+          bs_icon("github"),
+          "GitHub"
+        ),
         href = "https://github.com/jrwinget/schematic"
       ),
       nav_item(
-        "Documentation",
-        icons = bs_icon("book"),
-        href = "jrwinget.github.io/schematic/"
+        tags$span(
+          bs_icon("question-circle"),
+          "Help & Tutorial"
+        ),
+        onclick = "showHelpModal();"
       )
-    )
+    ),
+    # visual Hierarchy: subtle but clear branding
+    window_title = "Group Decision Models | Schematic"
   )
 }
 
 #' @export
 server <- function(id) {
   moduleServer(id, function(input, output, session) {
+    intro_tab$server("intro")
     sds_tab$server("sds")
     sjs_tab$server("sjs")
-    simulation_tab$server("simulation")
+    sim_tab$server("sim")
   })
 }
