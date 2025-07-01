@@ -7,23 +7,14 @@ box::use(
     popover,
     tooltip
   ],
-  echarts4r[
-    e_axis,
-    e_bar,
-    e_charts,
-    e_heatmap,
-    e_title,
-    e_tooltip,
-    e_visual_map,
-    echarts4rOutput,
-    renderEcharts4r
-  ],
   shiny,
 )
 
 box::use(
   app/logic/sds_calculations[generate_decision_matrix],
   app/logic/ui_helpers[content_card],
+  app/view/plot_bar,
+  app/view/plot_heatmap,
 )
 
 #' @export
@@ -102,11 +93,11 @@ ui <- function(id) {
             "Decision Scheme Type:",
             choices = c(
               "Majority Rule" = "majority",
-              "Proportionality Rule" = "proportional",
+              "Proportional" = "proportional",
+              "Equiprobability" = "equiprobability",
               "Two-Thirds Majority" = "two_thirds",
               "Unanimity" = "unanimity",
-              "Truth-Wins" = "truth",
-              "Custom" = "custom"
+              "Truth-Wins" = "truth_wins"
             ),
             selected = "majority",
             width = "100%"
@@ -146,9 +137,7 @@ ui <- function(id) {
           "Set how many group members prefer each option",
           placement = "top"
         ),
-        shiny$uiOutput(ns("preference_sliders")),
-        shiny$tags$hr(class = "my-3"),
-        echarts4rOutput(ns("preference_plot"), height = "200px")
+        shiny$uiOutput(ns("preference_sliders"))
       )
     ),
     # results ------------------------------------------------------------------
@@ -168,14 +157,14 @@ ui <- function(id) {
           class = "shadow-none border h-100",
           header_class = "bg-white",
           body_class = "p-3",
-          echarts4rOutput(ns("decision_matrix_plot"), height = "350px")
+          plot_heatmap$ui(ns("plot_decision_mat")),
         ),
         content_card(
           title = "Predicted Outcomes",
           class = "shadow-none border h-100",
           header_class = "bg-white",
           body_class = "p-3",
-          echarts4rOutput(ns("outcome_plot"), height = "350px")
+          plot_bar$ui(ns("plot_outcome"))
         )
       )
     )
@@ -192,17 +181,45 @@ server <- function(id) {
     ))
     individual_prefs <- shiny$reactiveVal(rep(1 / 3, 3))
 
+    pref_values <- shiny$reactiveValues()
+
+    # init preference values when num_alternatives changes
+    shiny$observeEvent(input$num_alternatives, {
+      n <- input$num_alternatives
+      if (!is.null(n) && n >= 2) {
+        for (i in seq_len(n)) {
+          key <- paste0("pref_", i)
+          if (is.null(pref_values[[key]])) {
+            pref_values[[key]] <- 1 / n
+          }
+        }
+
+        all_keys <- names(pref_values)
+        pref_keys <- grep("^pref_\\d+$", all_keys, value = TRUE)
+        for (key in pref_keys) {
+          pref_num <- as.numeric(sub("pref_", "", key))
+          if (pref_num > n) {
+            pref_values[[key]] <- NULL
+          }
+        }
+      }
+    })
+
     # update pref sliders
     output$preference_sliders <- shiny$renderUI({
+      shiny$req(input$num_alternatives)
       n <- input$num_alternatives
 
       sliders <- lapply(1:n, function(i) {
+        key <- paste0("pref_", i)
+        initial_value <- pref_values[[key]] %||% (1 / n)
+
         shiny$sliderInput(
-          inputId = session$ns(paste0("pref_", i)),
+          inputId = session$ns(key),
           label = paste("Alternative", i, "preference proportion:"),
           min = 0,
           max = 1,
-          value = 1 / n,
+          value = initial_value,
           step = 0.01
         )
       })
@@ -210,93 +227,63 @@ server <- function(id) {
       shiny$div(sliders)
     })
 
-    # update model only when button is clicked
     shiny$observe({
-      shiny$req(input$update_sds, input$num_alternatives, input$sds_type)
+      shiny$req(input$num_alternatives)
+      for (i in seq_len(input$num_alternatives)) {
+        key <- paste0("pref_", i)
+        if (!is.null(input[[key]])) {
+          shiny$isolate({
+            pref_values[[key]] <- input[[key]]
+          })
+        }
+      }
+    })
+
+    # update model only when button is clicked
+    shiny$observeEvent(input$update_sds, {
+      shiny$req(input$update_sds > 0, input$num_alternatives, input$sds_type)
       n <- input$num_alternatives
 
       # update individual prefs
       prefs <- numeric(n)
       for (i in 1:n) {
-        pref_value <- input[[paste0("pref_", i)]]
-        prefs[i] <- if (!is.null(pref_value)) pref_value else 1 / n
+        key <- paste0("pref_", i)
+        prefs[i] <- input[[key]] %||% pref_values[[key]] %||% (1 / n)
       }
 
       # normalize prefs
       prefs <- prefs / sum(prefs)
       individual_prefs(prefs)
 
-      # update matrix
-      decision_matrix(generate_decision_matrix(input$sds_type, n))
-    }) |>
-      shiny$bindEvent(input$update_sds)
+      scheme_name <- switch(input$sds_type,
+        "truth" = "truth_wins",
+        input$sds_type
+      )
 
-    # reset sliders when number of alternatives changes
-    shiny$observe({
-      shiny$req(input$num_alternatives)
-      n <- input$num_alternatives
-      
-      # reset reactive values to defaults when alternatives change
-      individual_prefs(rep(1 / n, n))
-      decision_matrix(generate_decision_matrix("majority", n))
+      # update matrix
+      decision_matrix(generate_decision_matrix(scheme_name, n))
     })
 
     # plots --------------------------------------------------------------------
-    output$preference_plot <- renderEcharts4r({
-      prefs <- individual_prefs()
-
-      data.frame(
-        Alternative = paste("Alt", seq_along(prefs)),
-        Proportion = prefs
-      ) |>
-        e_charts(Alternative) |>
-        e_bar(Proportion) |>
-        e_title("Individual Preference Distribution") |>
-        e_axis(axis = "y", max = 1, name = "Proportion") |>
-        e_tooltip()
-    })
-
-    output$decision_matrix_plot <- renderEcharts4r({
-      shiny$req(decision_matrix())
-      matrix_data <- decision_matrix()
-      n <- nrow(matrix_data)
-      
-      # Create heatmap data
-      heatmap_data <- expand.grid(
-        From = paste("Alt", 1:n),
-        To = paste("Alt", 1:n)
-      )
-      heatmap_data$Value <- as.vector(matrix_data)
-      
-      heatmap_data |>
-        e_charts(From) |>
-        e_heatmap(To, Value) |>
-        e_visual_map(min = 0, max = 1) |>
-        e_title("Decision Matrix (Transition Probabilities)") |>
-        e_tooltip()
-    })
+    output$plot_decision_mat <- plot_heatmap$server(
+      "plot_decision_mat",
+      decision_matrix
+    )
 
     output$model_status <- shiny$renderText({
       if (is.null(input$update_sds) || input$update_sds == 0) {
         "Ready"
       } else {
-        "Updated"
+        "Complete"
       }
     })
 
-    output$outcome_plot <- renderEcharts4r({
-      shiny$req(decision_matrix(), individual_prefs())
-      outcome <- as.vector(decision_matrix() %*% individual_prefs())
-
-      data.frame(
-        Alternative = paste("Alt", seq_along(outcome)),
-        Probability = outcome
-      ) |>
-        e_charts(Alternative) |>
-        e_bar(Probability) |>
-        e_title("Group Decision Probabilities") |>
-        e_axis(axis = "y", max = 1, name = "Probability") |>
-        e_tooltip()
-    })
+    output$plot_outcome <- plot_bar$server(
+      "plot_outcome",
+      res = individual_prefs,
+      y_var = "Probability",
+      title = "Group Decision Probabilities",
+      decision_mat = decision_matrix
+    )
   })
 }

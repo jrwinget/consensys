@@ -6,26 +6,17 @@ box::use(
     layout_columns,
     tooltip
   ],
-  dplyr[starts_with],
-  echarts4r[
-    e_bar,
-    e_charts,
-    e_line,
-    e_title,
-    e_tooltip,
-    echarts4rOutput,
-    renderEcharts4r
-  ],
   purrr[map, map_dbl],
   shiny,
   stats[sd],
-  tidyr[pivot_longer],
 )
 
 box::use(
   app/logic/sds_calculations[apply_decision_scheme, generate_decision_matrix],
   app/logic/sjs_calculations[simulate_sjs_process],
   app/logic/ui_helpers[content_card],
+  app/view/plot_bar,
+  app/view/plot_line,
 )
 
 #' @export
@@ -67,7 +58,7 @@ ui <- function(id) {
         )
       )
     ),
-    # Settings
+    # settings -----------------------------------------------------------------
     layout_columns(
       col_widths = c(6, 6),
       fill = FALSE,
@@ -88,7 +79,7 @@ ui <- function(id) {
               "Proportional" = "proportional",
               "Two-Thirds Majority" = "two_thirds",
               "Unanimity" = "unanimity",
-              "Truth-Wins" = "truth"
+              "Truth-Wins" = "truth_wins"
             ),
             selected = "majority",
             width = "100%"
@@ -148,7 +139,7 @@ ui <- function(id) {
         shiny$uiOutput(ns("initial_positions"))
       )
     ),
-    # Run button
+    # run button
     content_card(
       class = "shadow-sm border-primary",
       shiny$div(
@@ -167,7 +158,7 @@ ui <- function(id) {
         )
       )
     ),
-    # Results
+    # results ------------------------------------------------------------------
     content_card(
       title = shiny$tagList(
         "Comparison Results",
@@ -184,14 +175,14 @@ ui <- function(id) {
           class = "shadow-none border",
           header_class = "bg-white",
           body_class = "p-3",
-          echarts4rOutput(ns("sds_plot"), height = "350px")
+          plot_bar$ui(ns("plot_sds"))
         ),
         content_card(
           title = "SJS Model Outcome",
           class = "shadow-none border",
           header_class = "bg-white",
           body_class = "p-3",
-          echarts4rOutput(ns("sjs_plot"), height = "350px")
+          plot_line$ui(ns("plot_sjs"))
         )
       ),
       shiny$tags$div(
@@ -211,19 +202,73 @@ ui <- function(id) {
 #' @export
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
+    weight_values <- shiny$reactiveValues()
+    position_values <- shiny$reactiveValues()
+
+    # init weight values when n_alternatives changes
+    shiny$observeEvent(input$n_alternatives, {
+      n <- input$n_alternatives
+      if (!is.null(n) && n >= 2) {
+        default_weight <- 1 / n
+        for (i in seq_len(n)) {
+          key <- paste0("alt_weight_", i)
+          if (is.null(weight_values[[key]])) {
+            weight_values[[key]] <- default_weight
+          }
+        }
+
+        all_keys <- names(weight_values)
+        weight_keys <- grep("^alt_weight_\\d+$", all_keys, value = TRUE)
+        for (key in weight_keys) {
+          weight_num <- as.numeric(sub("alt_weight_", "", key))
+          if (weight_num > n) {
+            weight_values[[key]] <- NULL
+          }
+        }
+      }
+    })
+
+    # init position values when n_individuals changes
+    shiny$observeEvent(input$n_individuals, {
+      n <- input$n_individuals
+      if (!is.null(n) && n >= 2) {
+        for (i in seq_len(n)) {
+          key <- paste0("init_pos_", i)
+          if (is.null(position_values[[key]])) {
+            position_values[[key]] <- sample(20:80, 1)
+          }
+        }
+
+        all_keys <- names(position_values)
+        pos_keys <- grep("^init_pos_\\d+$", all_keys, value = TRUE)
+        for (key in pos_keys) {
+          pos_num <- as.numeric(sub("init_pos_", "", key))
+          if (pos_num > n) {
+            position_values[[key]] <- NULL
+          }
+        }
+      }
+    })
+
     # dynamic inputs -----------------------------------------------------------
     output$alt_weights <- shiny$renderUI({
       shiny$req(input$n_alternatives)
 
       map(
         seq_len(input$n_alternatives),
-        ~ shiny$sliderInput(
-          inputId = session$ns(paste0("alt_weight_", .x)),
-          label = paste("Alternative", .x, "Weight"),
-          min = 0,
-          max = 1,
-          value = 1 / input$n_alternatives
-        )
+        function(i) {
+          key <- paste0("alt_weight_", i)
+          initial_value <- weight_values[[key]] %||% (1 / input$n_alternatives)
+
+          shiny$sliderInput(
+            inputId = session$ns(key),
+            label = paste("Alternative", i, "Weight"),
+            min = 0,
+            max = 1,
+            value = initial_value,
+            step = 0.01
+          )
+        }
       )
     })
 
@@ -232,89 +277,100 @@ server <- function(id) {
 
       map(
         seq_len(input$n_individuals),
-        ~ shiny$sliderInput(
-          inputId = session$ns(paste0("init_pos_", .x)),
-          label = paste("Individual", .x, "Position"),
-          min = 0,
-          max = 100,
-          value = sample(20:80, 1)
-        )
+        function(i) {
+          key <- paste0("init_pos_", i)
+          initial_value <- position_values[[key]] %||% sample(20:80, 1)
+
+          shiny$sliderInput(
+            inputId = session$ns(key),
+            label = paste("Individual", i, "Position"),
+            min = 0,
+            max = 100,
+            value = initial_value
+          )
+        }
       )
+    })
+
+    # update when sliders change
+    shiny$observe({
+      shiny$req(input$n_alternatives)
+      for (i in seq_len(input$n_alternatives)) {
+        key <- paste0("alt_weight_", i)
+        if (!is.null(input[[key]])) {
+          shiny$isolate({
+            weight_values[[key]] <- input[[key]]
+          })
+        }
+      }
+    })
+
+    shiny$observe({
+      shiny$req(input$n_individuals)
+      for (i in seq_len(input$n_individuals)) {
+        key <- paste0("init_pos_", i)
+        if (!is.null(input[[key]])) {
+          shiny$isolate({
+            position_values[[key]] <- input[[key]]
+          })
+        }
+      }
     })
 
     # reactive values ----------------------------------------------------------
     sds_results <- shiny$reactive({
-      shiny$req(input$run_comparison, input$n_alternatives)
+      shiny$req(input$run_comparison > 0, input$n_alternatives)
 
       weights <- map_dbl(
         seq_len(input$n_alternatives),
-        ~ input[[paste0("alt_weight_", .x)]] %||% (1 / input$n_alternatives)
+        function(i) {
+          key <- paste0("alt_weight_", i)
+          input[[key]] %||% weight_values[[key]] %||% (1 / input$n_alternatives)
+        }
       )
 
-      weights <- weights / sum(weights)
-
+      weights <- weights / sum(weights) # normalize
       res <- generate_decision_matrix(input$sds_scheme, input$n_alternatives)
       apply_decision_scheme(weights, res)
-    }) |>
-      shiny$bindEvent(input$run_comparison)
+    })
 
     sjs_results <- shiny$reactive({
-      shiny$req(input$run_comparison, input$n_individuals)
+      shiny$req(input$run_comparison > 0, input$n_individuals)
 
       init_positions <- map_dbl(
         seq_len(input$n_individuals),
-        ~ input[[paste0("init_pos_", .x)]] %||% 50
+        function(i) {
+          key <- paste0("init_pos_", i)
+          input[[key]] %||% position_values[[key]] %||% 50
+        }
       )
 
       simulate_sjs_process(init_positions, input$n_rounds)
-    }) |>
-      shiny$bindEvent(input$run_comparison)
+    })
 
     # plots --------------------------------------------------------------------
-    output$sds_plot <- renderEcharts4r({
-      shiny$req(sds_results())
+    output$plot_sds <- plot_bar$server(
+      "plot_sds",
+      res = sds_results,
+      y_var = "Probability",
+      title = "Final Decision Probabilities"
+    )
 
-      data.frame(
-        Alternative = paste("Alt", seq_along(sds_results())),
-        Probability = sds_results()
-      ) |>
-        e_charts(Alternative) |>
-        e_bar(Probability) |>
-        e_title("Final Decision Probabilities") |>
-        e_tooltip()
-    })
-
-    output$sjs_plot <- renderEcharts4r({
-      shiny$req(sjs_results())
-
-      results_df <- as.data.frame(sjs_results())
-      colnames(results_df) <- paste("Individual", seq_len(input$n_individuals))
-      results_df$Round <- 0:input$n_rounds
-
-      plot_data <- results_df |>
-        pivot_longer(
-          cols = starts_with("Individual"),
-          names_to = "Individual",
-          values_to = "Position"
-        )
-
-      plot_data |>
-        e_charts(Round) |>
-        e_line(Position, serie = Individual) |>
-        e_title("Position Convergence") |>
-        e_tooltip(trigger = "axis")
-    })
+    output$plot_sjs <- plot_line$server("plot_sjs", sjs_results)
 
     output$comparison_insights <- shiny$renderUI({
       shiny$req(sds_results(), sjs_results())
 
-      sds_entropy <- -sum(sds_results() * log(sds_results() + 1e-10))
+      # SDS metrics
+      sds_probs <- sds_results()
+      sds_entropy <- -sum(sds_probs * log(sds_probs + 1e-10))
+      most_likely_alt <- which.max(sds_probs)
+
+      # SJS metrics
       sjs_final_spread <- sd(sjs_results()[nrow(sjs_results()), ])
       sjs_initial_spread <- sd(sjs_results()[1, ])
       convergence <- sjs_initial_spread - sjs_final_spread
-      
-      most_likely_alt <- which.max(sds_results())
-      
+
       shiny$tagList(
         shiny$tags$div(
           class = "row",
@@ -323,11 +379,23 @@ server <- function(id) {
             shiny$tags$h6("SDS Model Results:"),
             shiny$tags$ul(
               shiny$tags$li(
-                sprintf("Most likely outcome: Alternative %d (%.1f%%)", 
-                       most_likely_alt, max(sds_results()) * 100)
+                sprintf(
+                  "Most likely outcome: Alternative %d (%.1f%%)",
+                  most_likely_alt,
+                  max(sds_probs) * 100
+                )
               ),
               shiny$tags$li(
                 sprintf("Decision entropy: %.3f", sds_entropy)
+              ),
+              shiny$tags$li(
+                if (sds_entropy < 0.5) {
+                  "Strong consensus on one alternative"
+                } else if (sds_entropy < 1.0) {
+                  "Moderate agreement with some uncertainty"
+                } else {
+                  "High uncertainty across alternatives"
+                }
               )
             )
           ),
@@ -342,18 +410,47 @@ server <- function(id) {
                 sprintf("Final spread: %.2f", sjs_final_spread)
               ),
               shiny$tags$li(
-                sprintf("Convergence: %.2f %s", 
-                       abs(convergence),
-                       if (convergence > 0) "(converged)" else "(diverged)")
+                sprintf(
+                  "Convergence: %.2f %s",
+                  abs(convergence),
+                  if (convergence > 0) "(converged)" else "(diverged)"
+                )
+              ),
+              shiny$tags$li(
+                if (sjs_final_spread < 5) {
+                  "Strong consensus reached"
+                } else if (sjs_final_spread < 15) {
+                  "Moderate convergence achieved"
+                } else {
+                  "Positions remain dispersed"
+                }
               )
             )
+          )
+        ),
+        shiny$tags$hr(),
+        shiny$tags$div(
+          shiny$tags$h6("Key Comparison:"),
+          shiny$tags$p(
+            if (sds_entropy < 0.5 && sjs_final_spread < 10) {
+              "Both models show strong consensus formation, indicating robust
+              agreement within the group."
+            } else if (sds_entropy > 1.0 && sjs_final_spread > 20) {
+              "Both models show persistent disagreement, suggesting fundamental
+              divisions in the group."
+            } else {
+              "The models show different patterns of consensus, highlighting how
+              discrete vs. continuous choice contexts affect group dynamics."
+            }
           )
         )
       )
     })
 
     output$comparison_status <- shiny$renderText({
-      if (is.null(sds_results()) || is.null(sjs_results())) {
+      if (input$run_comparison == 0) {
+        "Ready"
+      } else if (is.null(sds_results()) || is.null(sjs_results())) {
         "Ready"
       } else {
         "Complete"

@@ -8,29 +8,16 @@ box::use(
     popover,
     tooltip
   ],
-  dplyr[starts_with],
-  echarts4r[
-    e_charts,
-    e_heatmap,
-    e_legend,
-    e_line,
-    e_title,
-    e_tooltip,
-    e_visual_map,
-    e_x_axis,
-    e_y_axis,
-    echarts4rOutput,
-    renderEcharts4r
-  ],
   purrr[map, map_dbl],
   shiny,
   stats[sd],
-  tidyr[pivot_longer],
 )
 
 box::use(
-  app/logic/sjs_calculations[calculate_sjs_weights, simulate_sjs_process],
+  app/logic/sjs_calculations[simulate_sjs_process],
   app/logic/ui_helpers[content_card],
+  app/view/plot_heatmap,
+  app/view/plot_line,
 )
 
 #' @export
@@ -187,7 +174,7 @@ ui <- function(id) {
       layout_columns(
         col_widths = c(8, 4),
         fill = FALSE,
-        echarts4rOutput(ns("convergence_plot"), height = "400px"),
+        plot_line$ui(ns("plot_convergence"), plot_height = "400px"),
         content_card(
           class = "shadow-none border h-100",
           header_class = "bg-light",
@@ -199,7 +186,7 @@ ui <- function(id) {
             ns = ns,
             shiny$tags$hr(),
             shiny$tags$h6("Influence Matrix"),
-            echarts4rOutput(ns("weights_plot"), height = "250px")
+            plot_heatmap$ui(ns("plot_influence_mat"))
           )
         )
       )
@@ -210,101 +197,110 @@ ui <- function(id) {
 #' @export
 server <- function(id) {
   shiny$moduleServer(id, function(input, output, session) {
+    position_values <- shiny$reactiveValues()
+
+    # init position values when n_individuals changes
+    shiny$observeEvent(input$n_individuals, {
+      n <- input$n_individuals
+      if (!is.null(n) && n >= 2) {
+        for (i in seq_len(n)) {
+          key <- paste0("pos_", i)
+          if (is.null(position_values[[key]])) {
+            position_values[[key]] <- sample(20:80, 1)
+          }
+        }
+
+        all_keys <- names(position_values)
+        pos_keys <- grep("^pos_\\d+$", all_keys, value = TRUE)
+        for (key in pos_keys) {
+          pos_num <- as.numeric(sub("pos_", "", key))
+          if (pos_num > n) {
+            position_values[[key]] <- NULL
+          }
+        }
+      }
+    })
+
     # dynamic inputs -----------------------------------------------------------
     output$position_inputs <- shiny$renderUI({
       shiny$req(input$n_individuals)
 
       map(
         seq_len(input$n_individuals),
-        ~ shiny$sliderInput(
-          inputId = session$ns(paste0("pos_", .x)),
-          label = paste("Individual", .x),
-          min = 0,
-          max = 100,
-          value = sample(20:80, 1)
-        )
+        function(i) {
+          key <- paste0("pos_", i)
+          initial_value <- position_values[[key]] %||% sample(20:80, 1)
+
+          shiny$sliderInput(
+            inputId = session$ns(key),
+            label = paste("Individual", i),
+            min = 0,
+            max = 100,
+            value = initial_value
+          )
+        }
       )
+    })
+
+    # update stored values when sliders change
+    shiny$observe({
+      shiny$req(input$n_individuals)
+      for (i in seq_len(input$n_individuals)) {
+        key <- paste0("pos_", i)
+        if (!is.null(input[[key]])) {
+          shiny$isolate({
+            position_values[[key]] <- input[[key]]
+          })
+        }
+      }
     })
 
     # reactive values ----------------------------------------------------------
     sim_results <- shiny$reactive({
-      shiny$req(input$simulate, input$n_individuals)
+      shiny$req(input$simulate > 0, input$n_individuals)
 
+      # positions from input values
       initial_positions <- map_dbl(
         seq_len(input$n_individuals),
-        ~ input[[paste0("pos_", .x)]] %||% sample(20:80, 1)
+        function(i) {
+          key <- paste0("pos_", i)
+          input[[key]] %||% position_values[[key]] %||% sample(20:80, 1)
+        }
       )
 
       simulate_sjs_process(initial_positions, input$n_rounds)
-    }) |>
-      shiny$bindEvent(input$simulate)
+    })
 
     # randomize positions
     shiny$observeEvent(input$randomize_positions, {
       shiny$req(input$n_individuals)
-      
+
       for (i in seq_len(input$n_individuals)) {
+        key <- paste0("pos_", i)
+        new_value <- sample(20:80, 1)
+        position_values[[key]] <- new_value
         shiny$updateSliderInput(
           session,
-          paste0("pos_", i),
-          value = sample(20:80, 1)
+          key,
+          value = new_value
         )
       }
     })
 
     # plots --------------------------------------------------------------------
-    output$convergence_plot <- renderEcharts4r({
-      shiny$req(sim_results())
+    output$plot_convergence <- plot_line$server("plot_convergence", sim_results)
 
-      results_df <- as.data.frame(sim_results())
-      n_individuals <- input$n_individuals
-      n_rounds <- input$n_rounds
-      
-      colnames(results_df) <- paste("Individual", seq_len(n_individuals))
-      results_df$Round <- 0:n_rounds
-
-      plot_data <- results_df |>
-        pivot_longer(
-          cols = starts_with("Individual"),
-          names_to = "Individual",
-          values_to = "Position"
-        )
-
-      plot_data |>
-        e_charts(Round) |>
-        e_line(Position, serie = Individual) |>
-        e_tooltip(trigger = "axis") |>
-        e_legend(show = TRUE) |>
-        e_title("Convergence of Judgments Over Time") |>
-        e_x_axis(name = "Round") |>
-        e_y_axis(name = "Position", min = 0, max = 100)
-    })
-
-    output$weights_plot <- renderEcharts4r({
-      shiny$req(sim_results(), input$show_weights)
-
-      initial_positions <- sim_results()[1, ]
-      weights <- calculate_sjs_weights(initial_positions)
-      n <- nrow(weights)
-      
-      # Create heatmap data
-      heatmap_data <- expand.grid(
-        From = paste("Person", 1:n),
-        To = paste("Person", 1:n)
-      )
-      heatmap_data$Value <- as.vector(weights)
-
-      heatmap_data |>
-        e_charts(From) |>
-        e_heatmap(To, Value) |>
-        e_visual_map(min = 0, max = 1) |>
-        e_title("Influence Weight Matrix") |>
-        e_tooltip()
-    })
+    output$plot_influence_mat <- plot_heatmap$server(
+      "plot_influence_mat",
+      sim_results,
+      input$show_weights
+    )
 
     # status and summary outputs
     output$status_badge <- shiny$renderText({
-      if (is.null(sim_results())) {
+      if (input$simulate == 0) {
+        "Ready"
+      } else if (is.null(sim_results())) {
         "Ready"
       } else {
         "Complete"
@@ -313,12 +309,12 @@ server <- function(id) {
 
     output$summary_stats <- shiny$renderUI({
       shiny$req(sim_results())
-      
+
       results <- sim_results()
       initial_spread <- sd(results[1, ])
       final_spread <- sd(results[nrow(results), ])
       convergence <- initial_spread - final_spread
-      
+
       shiny$tagList(
         shiny$tags$div(
           class = "mb-2",
