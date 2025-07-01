@@ -17,7 +17,6 @@ box::use(
   app/view/plot_heatmap,
 )
 
-`%||%` <- function(a, b) if (is.null(a)) b else a
 
 #' @export
 ui <- function(id) {
@@ -274,8 +273,7 @@ server <- function(id) {
       prefs <- prefs / sum(prefs) # normalize prefs
       individual_prefs(prefs)
 
-      scheme_name <- switch(
-        input$sds_type,
+      scheme_name <- switch(input$sds_type,
         "truth" = "truth_wins",
         input$sds_type
       )
@@ -285,7 +283,7 @@ server <- function(id) {
     })
 
     # plots --------------------------------------------------------------------
-    output$plot_decision_mat <- plot_heatmap$server(
+    plot_heatmap$server(
       "plot_decision_mat",
       decision_matrix
     )
@@ -298,7 +296,7 @@ server <- function(id) {
       }
     })
 
-    output$plot_outcome <- plot_bar$server(
+    plot_bar$server(
       "plot_outcome",
       res = individual_prefs,
       y_var = "Probability",

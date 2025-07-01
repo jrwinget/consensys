@@ -19,8 +19,6 @@ box::use(
   app/view/plot_line,
 )
 
-`%||%` <- function(a, b) if (is.null(a)) b else a
-
 #' @export
 ui <- function(id) {
   ns <- shiny$NS(id)
@@ -351,14 +349,14 @@ server <- function(id) {
     })
 
     # plots --------------------------------------------------------------------
-    output$plot_sds <- plot_bar$server(
+    plot_bar$server(
       "plot_sds",
       res = sds_results,
       y_var = "Probability",
       title = "Final Decision Probabilities"
     )
 
-    output$plot_sjs <- plot_line$server("plot_sjs", sjs_results)
+    plot_line$server("plot_sjs", sjs_results)
 
     output$comparison_insights <- shiny$renderUI({
       shiny$req(sds_results(), sjs_results())

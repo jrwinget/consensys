@@ -20,8 +20,6 @@ box::use(
   app/view/plot_line,
 )
 
-`%||%` <- function(a, b) if (is.null(a)) b else a
-
 #' @export
 ui <- function(id) {
   ns <- shiny$NS(id)
@@ -269,7 +267,7 @@ server <- function(id) {
       )
 
       simulate_sjs_process(initial_positions, input$n_rounds)
-    }) |> 
+    }) |>
       shiny$bindEvent(input$simulate)
 
     # randomize positions
@@ -285,7 +283,7 @@ server <- function(id) {
           value = new_value
         )
       }
-    }) |> 
+    }) |>
       shiny$bindEvent(input$randomize_positions)
 
     # plots --------------------------------------------------------------------

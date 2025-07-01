@@ -68,7 +68,7 @@ server <- function(id, res, is_displayed = TRUE) {
           e_tooltip(
             formatter = JS(
               "function(params) {
-                return params.seriesName + ' → ' + params.name + 
+                return params.seriesName + ' → ' + params.name +
                   '<br/>Probability: ' + params.value[2].toFixed(3);
               }"
             )

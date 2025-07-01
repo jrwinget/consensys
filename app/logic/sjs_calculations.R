@@ -23,9 +23,9 @@ calculate_sjs_weights <- function(
   }
 
   # handle identical positions case according to SJS theory
+  # equal weights per Davis (1996) SJS model
   position_range <- diff(range(positions))
   if (position_range == 0) {
-    # all positions identical: equal weights per Davis (1996) SJS model
     return(matrix(1 / n, n, n))
   }
 

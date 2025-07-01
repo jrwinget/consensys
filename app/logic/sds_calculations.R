@@ -12,11 +12,11 @@ box::use(
 #' @return Vector of group decision probabilities
 #' @export
 apply_decision_scheme <- function(individual_prefs, decision_matrix) {
-  # validate inputs
   distributions <- attr(decision_matrix, "distributions")
   if (is.null(distributions)) {
     stop("Decision matrix must be generated with generate_decision_matrix()")
   }
+
   n_alternatives <- attr(decision_matrix, "n_alternatives")
   if (length(individual_prefs) != n_alternatives) {
     stop(glue("individual_prefs must have length {n_alternatives}"))

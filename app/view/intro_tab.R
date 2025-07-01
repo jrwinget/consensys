@@ -68,9 +68,9 @@ ui <- function(id) {
             value = "panel1",
             icon = bs_icon("people-fill"),
             tags$p(
-              "SDS theory explains how groups combine individual preferences into
-              collective decisions using mathematical rules like majority vote,
-              unanimity, or proportional representation."
+              "SDS theory explains how groups combine individual preferences
+              into collective decisions using mathematical rules like majority
+              vote, unanimity, or proportional representation."
             ),
             tags$div(
               class = "alert alert-info mb-0",
@@ -85,8 +85,8 @@ ui <- function(id) {
             icon = bs_icon("clipboard2-pulse-fill"),
             tags$p(
               "SJS theory models how group members influence each other's
-              continuous judgments (like ratings or estimates) through discussion
-              and persuasion."
+              continuous judgments (like ratings or estimates) through
+              discussion and persuasion."
             ),
             tags$div(
               class = "alert alert-success mb-0",
