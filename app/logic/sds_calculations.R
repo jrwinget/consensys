@@ -279,7 +279,7 @@ multinomial_probability <- function(distribution, individual_prefs) {
   prob_terms <- ifelse(
     distribution == 0 & individual_prefs == 0,
     1,
-    individual_prefs^distribution
+    individual_prefs ^ distribution
   )
   prob <- prod(prob_terms)
 
