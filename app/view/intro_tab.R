@@ -131,25 +131,18 @@ ui <- function(id) {
       tags$div(
         class = "text-center",
         tags$h5(class = "mb-2", "Ready to explore?"),
-        tags$p(
-          class = "text-muted mb-3",
-          "Choose a model from the navigation above to begin"
-        ),
         tags$div(
-          class = "d-flex justify-content-center gap-3",
-          tags$a(
-            href = "#",
-            class = "btn btn-primary",
-            onclick = "document.querySelector('[data-value=\"sds\"]').click();",
-            bs_icon("diagram-3"),
-            "Try SDS Model"
+          class = "d-flex justify-content-center gap-3 flex-wrap",
+          tags$button(
+            id = "start_walkthrough",
+            class = "btn btn-info",
+            onclick = "Shiny.setInputValue('app-start_walkthrough', Math.random());",
+            bs_icon("compass"),
+            "Take A Guided Tour"
           ),
-          tags$a(
-            href = "#",
-            class = "btn btn-success",
-            onclick = "document.querySelector('[data-value=\"sjs\"]').click();",
-            bs_icon("sliders"),
-            "Try SJS Model"
+          tags$p(
+            class = "text-muted mb-3 w-100 text-center",
+            "Or choose a model from the sidebar to begin!"
           )
         )
       )

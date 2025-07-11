@@ -1,0 +1,27 @@
+name: Sync main to staging
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: staging
+          token: ${{ secrets.PAT }}
+
+      - name: Merge main into staging
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git fetch origin main
+          git merge origin/main --no-edit --allow-unrelated-histories || echo "Already merged"
+          git push origin staging

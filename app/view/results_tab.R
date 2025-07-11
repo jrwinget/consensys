@@ -227,6 +227,7 @@ server <- function(
     n_rounds,
     sds_scheme,
     self_weight,
+    decay_parameter,
     pref_values,
     position_values,
     run_sds,
@@ -293,7 +294,8 @@ server <- function(
       results <- simulate_sjs_process(
         positions,
         n_rounds(),
-        self_weight = self_weight()
+        self_weight = self_weight(),
+        decay_parameter = decay_parameter()
       )
       sjs_results(results)
 
@@ -303,6 +305,28 @@ server <- function(
         "results_accordion",
         target = "sjs_panel"
       )
+    })
+
+    # Real-time SJS updates when parameters change
+    shiny$observe({
+      # Only update if we have existing results and SJS model is selected
+      shiny$req(
+        !is.null(sjs_results()),
+        model_type() %in% c("sjs", "comparison"),
+        group_size(),
+        n_rounds(),
+        self_weight(),
+        decay_parameter()
+      )
+
+      positions <- get_position_values()
+      results <- simulate_sjs_process(
+        positions,
+        n_rounds(),
+        self_weight = self_weight(),
+        decay_parameter = decay_parameter()
+      )
+      sjs_results(results)
     })
 
     # Run comparison
@@ -331,7 +355,8 @@ server <- function(
       sjs_res <- simulate_sjs_process(
         positions,
         n_rounds(),
-        self_weight = self_weight()
+        self_weight = self_weight(),
+        decay_parameter = decay_parameter()
       )
       sjs_results(sjs_res)
 
