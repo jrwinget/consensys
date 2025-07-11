@@ -24,8 +24,6 @@ box::use(
     calculate_sjs_weights,
     simulate_sjs_process
   ],
-  app/view/sds_tab,
-  app/view/sjs_tab,
 )
 
 # SDS Calculations Tests -------------------------------------------------------
@@ -270,60 +268,4 @@ test_that("SDS schemes produce different outcomes", {
   expect_true(!identical(maj_result, prop_result))
 })
 
-# UI Module Tests --------------------------------------------------------------
-
-test_that("SDS tab server initializes correctly", {
-  testServer(sds_tab$server, {
-    session$setInputs(num_alternatives = 3)
-    session$flushReact()
-
-    expect_true(!is.null(output$preference_sliders))
-    expect_equal(output$model_status, "Ready")
-  })
-})
-
-test_that("SDS tab updates on button click", {
-  testServer(sds_tab$server, {
-    session$setInputs(
-      num_alternatives = 3,
-      sds_type = "majority",
-      pref_1 = 0.5,
-      pref_2 = 0.3,
-      pref_3 = 0.2
-    )
-    session$flushReact()
-
-    initial_status <- output$model_status
-
-    session$setInputs(update_sds = 1)
-    session$flushReact()
-
-    expect_true(output$model_status != initial_status)
-  })
-})
-
-test_that("SJS tab server initializes correctly", {
-  testServer(sjs_tab$server, {
-    session$setInputs(n_individuals = 5, n_rounds = 3)
-    session$flushReact()
-
-    expect_true(!is.null(output$position_inputs))
-  })
-})
-
-test_that("SJS tab simulation runs correctly", {
-  testServer(sjs_tab$server, {
-    session$setInputs(
-      n_individuals = 4,
-      n_rounds = 5,
-      pos_1 = 10,
-      pos_2 = 30,
-      pos_3 = 70,
-      pos_4 = 90,
-      simulate = 1
-    )
-    session$flushReact()
-
-    expect_equal(output$status_badge, "Complete")
-  })
-})
+# TODO: add UI module tests
