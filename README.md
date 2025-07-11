@@ -1,6 +1,6 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Consensys <a href="https://0197ccc4-0263-030e-9e75-33d7f59688ab.share.connect.posit.cloud/"><img src="app/static/logo.png" align="right" height="138" /></a>
+# Consensys <a href="https://jrwinget-consensys.share.connect.posit.cloud"><img src="app/static/logo.png" align="right" height="138" /></a>
 
 <!-- badges: start -->
 
@@ -24,7 +24,7 @@ collective outcomes.
 The app is deployed and accessible at:
 
 🔗 [Consensys on Posit
-Cloud](https://0197ccc4-0263-030e-9e75-33d7f59688ab.share.connect.posit.cloud/)
+Cloud](https://jrwinget-consensys.share.connect.posit.cloud)
 
 ------------------------------------------------------------------------
 
