@@ -65,6 +65,14 @@ class WalkthroughManager {
         }
       });
     });
+
+    // Add cleanup method to disconnect observer
+    this.cleanup = () => {
+      if (this.observer) {
+        this.observer.disconnect();
+        this.observer = null;
+      }
+    };
     this.observer.observe(document.body, { childList: true, subtree: true });
   }
 
