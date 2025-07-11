@@ -9,8 +9,8 @@ box::use(
 )
 
 box::use(
-  app/logic/sjs_calculations[simulate_sjs_process],
-  app/main,
+  app / logic / sjs_calculations[simulate_sjs_process],
+  app / main,
 )
 
 test_that("SJS decay parameter is properly integrated in UI", {
@@ -34,30 +34,33 @@ test_that("SJS decay parameter is properly integrated in UI", {
   })
 })
 
-test_that("SJS simulation with different decay parameters produces different results", {
-  positions <- c(10, 50, 90)
+test_that(
+  "SJS simulation with different decay parameters produces different results",
+  {
+    positions <- c(10, 50, 90)
 
-  result_low_decay <- simulate_sjs_process(
-    positions,
-    n_rounds = 5,
-    self_weight = 0.5,
-    decay_parameter = 0.5
-  )
+    result_low_decay <- simulate_sjs_process(
+      positions,
+      n_rounds = 5,
+      self_weight = 0.5,
+      decay_parameter = 0.5
+    )
 
-  result_high_decay <- simulate_sjs_process(
-    positions,
-    n_rounds = 5,
-    self_weight = 0.5,
-    decay_parameter = 3.0
-  )
+    result_high_decay <- simulate_sjs_process(
+      positions,
+      n_rounds = 5,
+      self_weight = 0.5,
+      decay_parameter = 3.0
+    )
 
-  expect_type(result_low_decay, "double")
-  expect_type(result_high_decay, "double")
-  expect_true(is.matrix(result_low_decay))
-  expect_true(is.matrix(result_high_decay))
+    expect_type(result_low_decay, "double")
+    expect_type(result_high_decay, "double")
+    expect_true(is.matrix(result_low_decay))
+    expect_true(is.matrix(result_high_decay))
 
-  expect_true(!identical(result_low_decay, result_high_decay))
+    expect_true(!identical(result_low_decay, result_high_decay))
 
-  expect_equal(attr(result_low_decay, "decay_parameter"), 0.5)
-  expect_equal(attr(result_high_decay, "decay_parameter"), 3.0)
-})
+    expect_equal(attr(result_low_decay, "decay_parameter"), 0.5)
+    expect_equal(attr(result_high_decay, "decay_parameter"), 3.0)
+  }
+)

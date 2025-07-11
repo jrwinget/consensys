@@ -1,16 +1,14 @@
 box::use(
   testthat[
-    expect_equal,
+    expect_match,
     expect_true,
     expect_type,
-    expect_match,
     test_that
   ],
 )
 
 box::use(
   app/view/intro_tab,
-  app/main,
 )
 
 test_that("intro_tab UI renders correctly", {

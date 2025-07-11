@@ -1,1 +1,1 @@
-import './walkthrough.js';
+import './walkthrough';
