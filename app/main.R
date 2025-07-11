@@ -10,33 +10,126 @@ box::use(
   app/view/results_tab,
 )
 
+walkthrough_steps <- list(
+  list(
+    id = "model_selection",
+    title = "Choose Your Model",
+    content = "Start by selecting either SDS for discrete decisions or SJS for continuous judgments.",
+    target = "[name='model_type']",
+    placement = "right"
+  ),
+  list(
+    id = "group_size",
+    title = "Set Group Size",
+    content = "Adjust the number of individuals in your group (2-10 members).",
+    target = "[name='group_size']",
+    placement = "right"
+  ),
+  list(
+    id = "parameters",
+    title = "Configure Parameters",
+    content = "Fine-tune model-specific settings like decision schemes or decay parameters.",
+    target = ".sidebar-content",
+    placement = "right"
+  ),
+  list(
+    id = "run_simulation",
+    title = "Run Simulation",
+    content = "Click the run button to execute your simulation and see results.",
+    target = "[id*='run_']",
+    placement = "right"
+  ),
+  list(
+    id = "results",
+    title = "Explore Results",
+    content = "Navigate to the Results tab to view interactive visualizations of your simulation.",
+    target = "[data-value='results']",
+    placement = "bottom"
+  )
+)
+
 #' @export
 ui <- function(id) {
   ns <- shiny$NS(id)
 
   bslib$page_fillable(
-    title = shiny$tags$span(
-      "Consensys: Interactive tools for understanding group decision processes",
-    ),
     theme = create_app_theme(),
     padding = 0,
     gap = 0,
     fillable_mobile = TRUE,
+    
+    # walkthrough overlay
+    shiny$tags$div(
+      id = ns("walkthrough_overlay"),
+      class = "walkthrough-overlay d-none",
+      style = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;",
+      
+      # walkthrough tooltip
+      shiny$tags$div(
+        id = ns("walkthrough_tooltip"),
+        class = "walkthrough-tooltip",
+        style = "position: absolute; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); max-width: 300px; z-index: 10000;",
+        
+        shiny$tags$div(
+          class = "walkthrough-header d-flex justify-content-between align-items-center mb-3",
+          shiny$tags$h5(id = ns("step_title"), class = "mb-0"),
+          shiny$actionButton(
+            ns("end_walkthrough"),
+            label = "",
+            icon = shiny$icon("times"),
+            class = "btn-close",
+            style = "border: none; background: none;"
+          )
+        ),
+        
+        shiny$tags$p(id = ns("step_content"), class = "mb-3"),
+        
+        shiny$tags$div(
+          class = "walkthrough-footer d-flex justify-content-between align-items-center",
+          shiny$tags$div(
+            class = "step-counter",
+            shiny$tags$span(id = ns("step_counter"), "1 of 5")
+          ),
+          shiny$tags$div(
+            class = "walkthrough-buttons",
+            shiny$actionButton(
+              ns("prev_step"),
+              label = "Previous",
+              class = "btn btn-outline-secondary btn-sm me-2"
+            ),
+            shiny$actionButton(
+              ns("next_step"),
+              label = "Next",
+              class = "btn btn-primary btn-sm"
+            )
+          )
+        )
+      )
+    ),
     bslib$layout_sidebar(
-      open = "always",
-      title = shiny$tags$div(
-        class = "d-flex flex-column align-items-start gap-2 m-3",
-        padding = 0,
-        gap = 0,
-        shiny$tags$img(src = "static/logo.png", height = 50),
-        "Settings"
-      ),
+      padding = 0,
       sidebar = bslib$sidebar(
         class = "rounded-0",
         padding = 0,
         gap = 0,
-        height = "100vh",
-        width = "26%",
+        height = "100vh", 
+        width = "30%",
+        title = shiny$tags$div(
+          shiny$tags$div(
+            class = "d-flex align-items-center mb-2",
+            shiny$tags$span(class = "h2 mb-0", "Consensys"),
+            shiny$tags$img(
+              src = "static/logo.png",
+              height = "85",
+              class = "ms-auto"
+            )
+          ),
+          shiny$tags$p(
+            class = "h6 text-muted mb-0",
+            "Interactive tools for understanding group decision processes"
+          )
+        ),
+        shiny$tags$hr(class = "my-3"),
         shiny$tags$div(
           class = "sidebar-content p-3",
           # model selection
@@ -384,10 +477,72 @@ server <- function(id) {
       bslib$nav_select(session = session, "nav_tabs", selected = "results")
     })
 
-    # Call child modules
+    # walkthrough logic
+    walkthrough_values <- shiny$reactiveValues(
+      is_active = FALSE,
+      current_step = 1,
+      total_steps = length(walkthrough_steps)
+    )
+    
+    # start walkthrough
+    shiny$observeEvent(input$start_walkthrough, {
+      walkthrough_values$is_active <- TRUE
+      walkthrough_values$current_step <- 1
+      show_step(1)
+    })
+    
+    # end walkthrough
+    shiny$observeEvent(input$end_walkthrough, {
+      walkthrough_values$is_active <- FALSE
+      hide_walkthrough()
+    })
+    
+    # next step
+    shiny$observeEvent(input$next_step, {
+      if (walkthrough_values$current_step < walkthrough_values$total_steps) {
+        walkthrough_values$current_step <- walkthrough_values$current_step + 1
+        show_step(walkthrough_values$current_step)
+      } else {
+        walkthrough_values$is_active <- FALSE
+        hide_walkthrough()
+      }
+    })
+    
+    # last step
+    shiny$observeEvent(input$prev_step, {
+      if (walkthrough_values$current_step > 1) {
+        walkthrough_values$current_step <- walkthrough_values$current_step - 1
+        show_step(walkthrough_values$current_step)
+      }
+    })
+    
+    # specific step
+    show_step <- function(step_num) {
+      step <- walkthrough_steps[[step_num]]
+      
+      session$sendCustomMessage(
+        "updateWalkthroughStep",
+        list(
+          title = step$title,
+          content = step$content,
+          target = step$target,
+          placement = step$placement,
+          step_num = step_num,
+          total_steps = walkthrough_values$total_steps,
+          show_prev = step_num > 1,
+          show_next = step_num < walkthrough_values$total_steps
+        )
+      )
+    }
+    
+    # hide walkthrough
+    hide_walkthrough <- function() {
+      session$sendCustomMessage("hideWalkthrough", list("hide" = TRUE))
+    }
+
+    # call child modules
     intro_tab$server("intro")
 
-    # Pass all necessary reactive values to results tab
     results_tab$server(
       "results",
       model_type = shiny$reactive(input$model_type),
