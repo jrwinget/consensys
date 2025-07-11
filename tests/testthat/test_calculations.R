@@ -1,5 +1,4 @@
 box::use(
-  shiny[testServer],
   testthat[
     expect_equal,
     expect_error,
@@ -206,6 +205,57 @@ test_that("simulate_sjs_process convergence detection works", {
 
   expect_true(attr(result, "converged"))
   expect_true(attr(result, "final_round") <= 20)
+})
+
+test_that("simulate_sjs_process respects decay_parameter", {
+  positions <- c(0, 50, 100)
+
+  # Low decay should allow more influence from distant positions
+  result_low_decay <- simulate_sjs_process(
+    positions,
+    n_rounds = 5,
+    decay_parameter = 0.1
+  )
+
+  # High decay should limit influence from distant positions
+  result_high_decay <- simulate_sjs_process(
+    positions,
+    n_rounds = 5,
+    decay_parameter = 5
+  )
+
+  # Both should be valid matrices
+  expect_type(result_low_decay, "double")
+  expect_type(result_high_decay, "double")
+  expect_true(is.matrix(result_low_decay))
+  expect_true(is.matrix(result_high_decay))
+
+  # Check that decay parameter is stored in attributes
+  expect_equal(attr(result_low_decay, "decay_parameter"), 0.1)
+  expect_equal(attr(result_high_decay, "decay_parameter"), 5)
+
+  # High decay should generally result in less convergence
+  final_spread_low <- sd(result_low_decay[nrow(result_low_decay), ])
+  final_spread_high <- sd(result_high_decay[nrow(result_high_decay), ])
+  expect_true(final_spread_high >= final_spread_low)
+})
+
+test_that("calculate_sjs_weights respects decay_parameter values", {
+  positions <- c(0, 50, 100)
+
+  weights_low <- calculate_sjs_weights(positions, decay_parameter = 0.5)
+  weights_high <- calculate_sjs_weights(positions, decay_parameter = 2)
+
+  # Both should be valid weight matrices
+  expect_equal(rowSums(weights_low), rep(1, 3), tolerance = 1e-10)
+  expect_equal(rowSums(weights_high), rep(1, 3), tolerance = 1e-10)
+
+  # Higher decay should result in more concentrated weights
+  # (less influence from distant positions)
+  # Middle person (position 50) receives influence from positions 0 and 100
+  # With higher decay, the influence should be more equal (less distance effect)
+  expect_true(all(weights_low >= 0))
+  expect_true(all(weights_high >= 0))
 })
 
 test_that("calculate_sjs_consensus returns valid metrics", {

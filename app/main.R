@@ -137,10 +137,36 @@ ui <- function(id) {
               class = "mb-3",
               shiny$sliderInput(
                 ns("self_weight"),
-                "Self Weight:",
+                shiny$tags$span(
+                  "Self Weight:",
+                  bslib$tooltip(
+                    bs_icon("info-circle"),
+                    "How much individuals rely on their own position vs. others' influence",
+                    placement = "right"
+                  )
+                ),
                 min = 0,
                 max = 1,
                 value = 0.5,
+                step = 0.1,
+                width = "100%"
+              )
+            ),
+            shiny$tags$div(
+              class = "mb-3",
+              shiny$sliderInput(
+                ns("decay_parameter"),
+                shiny$tags$span(
+                  "Decay Parameter:",
+                  bslib$tooltip(
+                    bs_icon("info-circle"),
+                    "Controls how quickly influence decreases with distance (higher = more decay)",
+                    placement = "right"
+                  )
+                ),
+                min = 0.1,
+                max = 5,
+                value = 1,
                 step = 0.1,
                 width = "100%"
               )
@@ -370,6 +396,7 @@ server <- function(id) {
       n_rounds = shiny$reactive(input$n_rounds),
       sds_scheme = shiny$reactive(input$sds_scheme),
       self_weight = shiny$reactive(input$self_weight),
+      decay_parameter = shiny$reactive(input$decay_parameter),
       pref_values = pref_values,
       position_values = position_values,
       run_sds = shiny$reactive(input$run_sds),
