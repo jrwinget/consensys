@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🎓 Academic Support & Discussion
+    url: https://github.com/jrwinget/consensys/discussions
+    about: For general questions about SDS/SJS theory, usage guidance, or academic discussions
+  - name: 📖 Documentation & User Guide
+    url: https://jrwinget-consensys.share.connect.posit.cloud
+    about: Try the live application and access user documentation
+  - name: 📚 R Shiny General Help
+    url: https://community.rstudio.com/c/shiny/8
+    about: For general R Shiny questions not specific to Consensys
+  - name: 🐛 Security Vulnerability
+    url: mailto:contact@jrwinget.com
+    about: Please report security vulnerabilities privately via email

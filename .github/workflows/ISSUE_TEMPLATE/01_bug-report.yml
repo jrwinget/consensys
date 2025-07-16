@@ -1,0 +1,128 @@
+name: 🐛 Bug Report
+description: Report a bug or unexpected behavior in Consensys
+title: "[Bug]: "
+labels: ["bug", "triage"]
+assignees:
+  - jrwinget
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! This helps improve Consensys for the research community.
+        
+        Before submitting, please:
+        - Search existing issues to avoid duplicates
+        - Try reproducing the issue in a fresh browser session
+        - Check if the issue occurs in the [live app](https://jrwinget-consensys.share.connect.posit.cloud)
+
+  - type: checkboxes
+    id: preliminary_checks
+    attributes:
+      label: Preliminary Checks
+      description: Please confirm you've completed these steps
+      options:
+        - label: I have searched existing issues and found no duplicates
+          required: true
+        - label: I have tried reproducing this in a fresh browser session
+          required: true
+        - label: I have checked the latest version of the application
+          required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Application Component
+      description: Which part of Consensys is affected?
+      options:
+        - SDS (Social Decision Schemes) Modeling
+        - SJS (Social Judgment Schemes) Simulation
+        - Comparison Mode
+        - Visualization/Plotting
+        - Parameter Controls
+        - Walkthrough/Tutorial
+        - Data Export
+        - UI/Layout Issues
+        - Other/Unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: Bug Description
+      description: Clear and concise description of what the bug is
+      placeholder: Describe what happened vs. what you expected...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction_steps
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Set parameters to '...'
+        3. Click on '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected Behavior
+      description: What should have happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots/Error Messages
+      description: If applicable, add screenshots or copy error messages
+      placeholder: Paste screenshots or error text here...
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser & Version
+      description: What browser and version are you using?
+      placeholder: "e.g., Chrome 91.0.4472.124, Firefox 89.0, Safari 14.1"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      placeholder: "e.g., Windows 10, macOS 12.0, Ubuntu 20.04"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Impact Severity
+      description: How severely does this bug affect your research/usage?
+      options:
+        - Critical - Application unusable
+        - High - Major feature broken
+        - Medium - Minor feature broken
+        - Low - Cosmetic issue
+    validations:
+      required: true
+
+  - type: textarea
+    id: research_context
+    attributes:
+      label: Research Context (Optional)
+      description: If relevant, describe how this bug affects your research workflow
+      placeholder: "e.g., Affects classroom demonstration, blocks data analysis for paper, etc."
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any other context about the problem
