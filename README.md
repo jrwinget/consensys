@@ -211,7 +211,7 @@ Found a bug or have a feature request? Please use our structured issue
 templates:
 
 -   **[🐛 Bug
-    Report](https://github.com/jrwinget/consensys/issues/new?template=01_bug-report.yml)** -
+    Report](https://github.com/jrwinget/consensys/issues/new?template=ISSUE_TEMPLATE/01_bug-report.yml)** -
     Report technical issues
 -   **[✨ Feature
     Request](https://github.com/jrwinget/consensys/issues/new?template=02_feature-request.yml)** -
