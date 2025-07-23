@@ -386,8 +386,8 @@ Special thanks to:
     Discussions](https://github.com/jrwinget/consensys/discussions)
 
 For private inquiries or security concerns, please email:
-\[<contact@jrwinget.com>\]
+<contact@jrwinget.com>
 
 ------------------------------------------------------------------------
 
-*Last updated: 2025-07-16*
+*Last updated: 2025-07-23*

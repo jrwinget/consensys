@@ -9,6 +9,3 @@ contact_links:
   - name: 📚 R Shiny General Help
     url: https://community.rstudio.com/c/shiny/8
     about: For general R Shiny questions not specific to Consensys
-  - name: 🐛 Security Vulnerability
-    url: mailto:contact@jrwinget.com
-    about: Please report security vulnerabilities privately via email

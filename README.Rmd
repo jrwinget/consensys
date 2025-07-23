@@ -328,7 +328,7 @@ Special thanks to:
 - **Academic Questions:** [Academic Question Template](https://github.com/jrwinget/consensys/issues/new?template=06_academic_question.yml)
 - **General Discussion:** [GitHub Discussions](https://github.com/jrwinget/consensys/discussions)
 
-For private inquiries or security concerns, please email: [contact@jrwinget.com]
+For private inquiries or security concerns, please email: [contact@jrwinget.com](mailto:contact@jrwinget.com)
 
 ---
 
