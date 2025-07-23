@@ -1,0 +1,65 @@
+name: Performance Issue
+description: Report slow performance, memory issues, or optimization needs
+title: "[Performance]: "
+labels: ["performance", "triage"]
+body:
+  - type: dropdown
+    id: performance_type
+    attributes:
+      label: Performance Issue Type
+      description: What type of performance issue are you experiencing?
+      options:
+        - Slow loading/rendering
+        - High memory usage
+        - Unresponsive interface
+        - Slow calculations
+        - App timeout/crash
+        - Large dataset handling
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue_description
+    attributes:
+      label: Issue Description
+      description: Describe the performance issue in detail
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction_context
+    attributes:
+      label: Reproduction Context
+      description: What parameters, data size, or conditions trigger this issue?
+      placeholder: "e.g., Group size > 10, Running > 100 rounds, Specific parameter combinations..."
+    validations:
+      required: true
+
+  - type: input
+    id: browser_system
+    attributes:
+      label: Browser & System Specs
+      description: Browser, OS, and system specifications
+      placeholder: "e.g., Chrome 91 on Windows 10, 16GB RAM, Intel i7"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Impact Severity
+      description: How severely does this affect your usage?
+      options:
+        - Critical - App unusable
+        - High - Major workflow disruption
+        - Medium - Noticeable slowdown
+        - Low - Minor inconvenience
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_details
+    attributes:
+      label: Additional Details
+      description: Any error messages, browser console output, or other relevant information

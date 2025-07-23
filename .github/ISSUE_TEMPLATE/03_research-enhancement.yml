@@ -1,0 +1,81 @@
+name: Research Enhancement
+description: Suggest improvements for academic research capabilities
+title: "[Research]: "
+labels: ["research", "enhancement", "academic"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for suggestions that specifically enhance the research capabilities of Consensys, such as new statistical methods, theoretical implementations, or validation features.
+
+  - type: dropdown
+    id: theoretical_framework
+    attributes:
+      label: Theoretical Framework
+      description: Which theoretical area does this enhancement address?
+      options:
+        - Social Decision Scheme (SDS) Theory
+        - Social Judgment Scheme (SJS) Theory
+        - Both SDS and SJS
+        - Meta-analysis/Comparison Methods
+        - Statistical Validation
+        - Experimental Design
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: enhancement_description
+    attributes:
+      label: Enhancement Description
+      description: Detailed description of the proposed research enhancement
+    validations:
+      required: true
+
+  - type: textarea
+    id: theoretical_basis
+    attributes:
+      label: Theoretical Basis
+      description: What theoretical or empirical work supports this enhancement?
+      placeholder: "Cite relevant papers, theories, or empirical findings..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: research_benefits
+    attributes:
+      label: Research Benefits
+      description: How would this enhancement benefit researchers using Consensys?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: validation_needs
+    attributes:
+      label: Validation Requirements
+      description: What type of validation would this enhancement need?
+      options:
+        - Comparison with published results
+        - Statistical verification
+        - Peer review of implementation
+        - Empirical testing
+        - No validation needed
+        - Unsure
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation_considerations
+    attributes:
+      label: Implementation Considerations
+      description: Any specific requirements or considerations for implementation?
+      placeholder: "e.g., Computational complexity, new dependencies, data requirements..."
+
+  - type: textarea
+    id: literature_references
+    attributes:
+      label: Literature References
+      description: Key papers or resources related to this enhancement
+      placeholder: |
+        Format: Author (Year). Title. Journal.
+        e.g., Davis, J. H. (1973). Group decision and social interaction: A theory of social decision schemes.

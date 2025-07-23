@@ -1,0 +1,72 @@
+name: Academic Question
+description: Ask questions about SDS/SJS theory, methodology, or research applications
+title: "[Question]: "
+labels: ["question", "academic", "discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for questions about the theoretical foundations, research applications, or academic aspects of Social Decision Schemes and Social Judgment Schemes.
+        
+        **Note:** For technical issues with the app, please use the Bug Report template instead.
+
+  - type: dropdown
+    id: question_category
+    attributes:
+      label: Question Category
+      description: What type of question is this?
+      options:
+        - SDS Theory & Methodology
+        - SJS Theory & Methodology
+        - Parameter Interpretation
+        - Research Design & Applications
+        - Statistical Methods
+        - Comparison with Literature
+        - Educational Use
+        - Theoretical Background
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question_description
+    attributes:
+      label: Your Question
+      description: Please describe your question in detail
+    validations:
+      required: true
+
+  - type: dropdown
+    id: user_background
+    attributes:
+      label: Your Background
+      description: What is your background or role?
+      options:
+        - Undergraduate student
+        - Graduate student
+        - Researcher/Faculty
+        - Educator/Instructor
+        - Industry practitioner
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context_research
+    attributes:
+      label: Research/Educational Context
+      description: How does this relate to your research, teaching, or learning?
+      placeholder: "e.g., Designing an experiment, teaching a course, writing a paper..."
+
+  - type: textarea
+    id: tried_resources
+    attributes:
+      label: Resources Already Consulted
+      description: What resources have you already checked?
+      placeholder: "e.g., Specific papers, textbooks, documentation sections..."
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any other relevant information

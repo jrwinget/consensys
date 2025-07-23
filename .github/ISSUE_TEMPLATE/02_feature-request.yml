@@ -1,0 +1,118 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for Consensys
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Your input helps prioritize development based on research needs.
+        
+        **Please note:** This application focuses on Social Decision Schemes (SDS) and Social Judgment Schemes (SJS) theory. Features should align with these academic frameworks.
+
+  - type: checkboxes
+    id: preliminary_checks
+    attributes:
+      label: Preliminary Checks
+      description: Please confirm you've completed these steps
+      options:
+        - label: I have searched existing issues and found no similar requests
+          required: true
+        - label: I have reviewed the current roadmap for this feature
+          required: true
+
+  - type: dropdown
+    id: feature_category
+    attributes:
+      label: Feature Category
+      description: What type of feature is this?
+      options:
+        - Statistical/Research Enhancement
+        - Visualization Improvement
+        - User Interface/Experience
+        - Data Import/Export
+        - Educational Tools
+        - Performance Optimization
+        - Mobile/Accessibility
+        - Integration/API
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this feature to your research/teaching?
+      options:
+        - Critical - Essential for research validity
+        - High - Significantly improves workflow
+        - Medium - Nice to have enhancement
+        - Low - Minor improvement
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: Feature Description
+      description: Clear and detailed description of the proposed feature
+    validations:
+      required: true
+
+  - type: textarea
+    id: research_justification
+    attributes:
+      label: Research/Academic Justification
+      description: How does this feature support SDS/SJS research or education?
+      placeholder: "e.g., Enables testing of new theoretical predictions, supports classroom demonstrations, improves statistical rigor..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case Scenario
+      description: Describe a specific scenario where you would use this feature
+      placeholder: "As a [researcher/educator/student], I want to [goal] so that [benefit]..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed Solution
+      description: How do you envision this feature working?
+
+  - type: textarea
+    id: alternatives_considered
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative approaches?
+
+  - type: textarea
+    id: academic_references
+    attributes:
+      label: Supporting Literature (Optional)
+      description: Any academic papers or theoretical work that supports this feature?
+      placeholder: "e.g., Davis (1973), Kerr & MacCoun (1985), etc."
+
+  - type: dropdown
+    id: implementation_size
+    attributes:
+      label: Expected Implementation Size
+      description: How complex do you think this feature would be to implement?
+      options:
+        - Small - Minor UI/parameter change
+        - Medium - New component or algorithm
+        - Large - Major architectural change
+        - Unsure
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any other context, mockups, or references
