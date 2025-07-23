@@ -181,7 +181,7 @@ We welcome contributions from researchers, educators, developers, and users! Con
 
 Found a bug or have a feature request? Please use our structured issue templates:
 
-- **[🐛 Bug Report](https://github.com/jrwinget/consensys/issues/new?template=ISSUE_TEMPLATE/01_bug-report.yml)** - Report technical issues
+- **[🐛 Bug Report](https://github.com/jrwinget/consensys/issues/new?template=01_bug-report.yml)** - Report technical issues
 - **[✨ Feature Request](https://github.com/jrwinget/consensys/issues/new?template=02_feature-request.yml)** - Suggest new functionality
 - **[🔬 Research Enhancement](https://github.com/jrwinget/consensys/issues/new?template=03_research-enhancement.yml)** - Propose academic improvements
 - **[📖 Documentation](https://github.com/jrwinget/consensys/issues/new?template=04_documentation-improvement.yml)** - Improve user guidance

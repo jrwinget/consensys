@@ -1,7 +1,7 @@
 name: 📖 Documentation Improvement
 description: Suggest improvements to documentation, help text, or user guidance
 title: "[Docs]: "
-labels: ["documentation", "user-experience"]
+labels: ["documentation", "ux"]
 body:
   - type: dropdown
     id: doc_type
