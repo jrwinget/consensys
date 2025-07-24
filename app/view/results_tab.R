@@ -480,7 +480,7 @@ server <- function(
         ),
         shiny$tags$p(
           shiny$tags$b("Status:"),
-          if (consensus$converged) {
+          if (consensus$variance_reduction > 0) {
             shiny$tags$span(class = "text-success", " Converged")
           } else {
             shiny$tags$span(class = "text-warning", " Did not converge")
