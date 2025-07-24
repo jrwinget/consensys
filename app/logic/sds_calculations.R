@@ -123,9 +123,24 @@ generate_decision_matrix <- function(scheme, n_alternatives, group_size = 5) {
           if (max_support > group_size / 2) {
             # clear majority winner
             decision_vec[which.max(comp_vec)] <- 1
+          } else if (max_support == group_size / 2 && group_size %% 2 == 0) {
+            # exact tie at r/2 (only possible when group_size is even)
+            tied_alternatives <- which(comp_vec == max_support)
+            if (length(tied_alternatives) == 2) {
+              # exactly two alternatives tied at r/2
+              decision_vec[tied_alternatives] <- 0.5
+            } else {
+              # more than two alternatives or other tie scenario
+              # fallback to proportional per Davis (1973)
+              if (sum(comp_vec) > 0) {
+                decision_vec <- comp_vec / sum(comp_vec)
+              } else {
+                decision_vec <- rep(1 / n_alternatives, n_alternatives)
+              }
+            }
           } else {
-            # no majority fallback should be proportional, not equiprobability
-            # aligns with Davis (1973) majority-proportionality sub-scheme
+            # no majority and not an exact r/2 tie
+            # fallback to proportional per Davis (1973)
             if (sum(comp_vec) > 0) {
               decision_vec <- comp_vec / sum(comp_vec)
             } else {
@@ -133,11 +148,12 @@ generate_decision_matrix <- function(scheme, n_alternatives, group_size = 5) {
             }
           }
         } else if (scheme == "proportional") {
-          # probability proportional to support
-          total_support <- sum(comp_vec)
-          if (total_support > 0) {
-            decision_vec <- comp_vec / total_support
-          } else {
+          # probability proportional to support (n_j/r)
+          decision_vec <- comp_vec / group_size
+
+          # handle edge case where all members abstain (all n_j = 0)
+          # this ensures the decision vector sums to 1
+          if (sum(decision_vec) == 0) {
             decision_vec <- rep(1 / n_alternatives, n_alternatives)
           }
         } else if (scheme == "equiprobability") {
@@ -150,10 +166,13 @@ generate_decision_matrix <- function(scheme, n_alternatives, group_size = 5) {
           }
         } else if (scheme == "two_thirds") {
           max_support <- max(comp_vec)
-          if (max_support >= (2 * group_size) / 3) {
+          two_thirds_threshold <- ceiling(2 * group_size / 3)
+          
+          if (max_support >= two_thirds_threshold) {
+            # two-thirds majority winner
             decision_vec[which.max(comp_vec)] <- 1
           } else {
-            # fallback should be proportional per Davis theory
+            # no two-thirds majority - fallback to proportional per Davis theory
             if (sum(comp_vec) > 0) {
               decision_vec <- comp_vec / sum(comp_vec)
             } else {
@@ -165,14 +184,12 @@ generate_decision_matrix <- function(scheme, n_alternatives, group_size = 5) {
             # unanimous support
             decision_vec[which.max(comp_vec)] <- 1
           } else {
-            # Davis (1973) suggests hung jury for non-unanimous cases
-            # represented as equiprobability among supported alternatives
-            supported <- which(comp_vec > 0)
-            if (length(supported) > 0) {
-              decision_vec[supported] <- 1 / length(supported)
-            } else {
-              decision_vec <- rep(1 / n_alternatives, n_alternatives)
-            }
+            # not unanimous - no decision can be made (e.g., hung jury)
+            # this represents an inability to decide rather than a probabilistic
+            # choice for computational purposes. we must assign probabilities
+            # that sum to 1 using uniform distribution to represent true
+            # uncertainty/deadlock
+            decision_vec <- rep(1 / n_alternatives, n_alternatives)
           }
         } else if (scheme == "truth_wins") {
           # truth-wins should follow Lorge-Solomon Model A exactly
