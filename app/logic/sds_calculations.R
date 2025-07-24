@@ -167,7 +167,7 @@ generate_decision_matrix <- function(scheme, n_alternatives, group_size = 5) {
         } else if (scheme == "two_thirds") {
           max_support <- max(comp_vec)
           two_thirds_threshold <- ceiling(2 * group_size / 3)
-          
+
           if (max_support >= two_thirds_threshold) {
             # two-thirds majority winner
             decision_vec[which.max(comp_vec)] <- 1
@@ -188,7 +188,7 @@ generate_decision_matrix <- function(scheme, n_alternatives, group_size = 5) {
             # this represents an inability to decide rather than a probabilistic
             # choice for computational purposes. we must assign probabilities
             # that sum to 1 using uniform distribution to represent true
-            # uncertainty/deadlock
+            # uncertainty or deadlock
             decision_vec <- rep(1 / n_alternatives, n_alternatives)
           }
         } else if (scheme == "truth_wins") {
