@@ -9,8 +9,8 @@ box::use(
 )
 
 box::use(
-  app / logic / sjs_calculations[simulate_sjs_process],
-  app / main,
+  app/logic/sjs_calculations[simulate_sjs_process],
+  app/main,
 )
 
 test_that("SJS decay parameter is properly integrated in UI", {
